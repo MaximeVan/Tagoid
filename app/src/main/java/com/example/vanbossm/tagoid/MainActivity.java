@@ -1,10 +1,12 @@
 package com.example.vanbossm.tagoid;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.JsonReader;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-/*
+
     private String downloadUrl(String myurl) throws IOException {
         InputStream is = null;
 
@@ -61,10 +63,8 @@ public class MainActivity extends AppCompatActivity {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
         try {
-            conn.setReadTimeout(10000 // milliseconds
-                    );
-            conn.setConnectTimeout(15000 //milliseconds
-                     );
+            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(15000);
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
             // Starts the query
@@ -76,29 +76,14 @@ public class MainActivity extends AppCompatActivity {
             String result = readIt(is);
             return result;
 
-            JSONObject jsonObject = new JSONObject(result);
-            // On récupère le tableau d'objets qui nous concernent
-            JSONArray array = new JSONArray(jsonObject.getString(""));
-            // Pour tous les objets on récupère les infos
-            for (int i = 0; i < array.length(); i++) {
-                // On récupère un objet JSON du tableau
-                JSONObject obj = new JSONObject(array.getString(i));
-                // On fait le lien avec le moyen de transport et l'Objet JSON
-                Id id = new Id();
-                id.setId(obj.getString("id"));
-
                 // Makes sure that the InputStream is closed after the app is
                 // finished using it.
-            }/*finally{
+        }finally{
                 if (is != null) {
                     is.close();
                     conn.disconnect();
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return id;
     }
 
     public String readIt(InputStream stream) throws IOException, UnsupportedEncodingException {
@@ -109,5 +94,5 @@ public class MainActivity extends AppCompatActivity {
             builder.append(line + "\n");
         }
         return builder.toString();
-    }*/
+    }
 }
