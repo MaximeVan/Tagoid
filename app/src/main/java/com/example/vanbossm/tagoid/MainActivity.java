@@ -22,7 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +30,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        try {
+            downloadUrl();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -55,10 +60,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private String downloadUrl(String myurl) throws IOException {
+    private String downloadUrl() throws IOException {
         InputStream is = null;
 
-        myurl = "https://data.metromobilite.fr/api/routers/default/index/routes";
+        String myurl = "https://data.metromobilite.fr/api/routers/default/index/routes";
         URL url = new URL(myurl);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
@@ -74,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Convert the InputStream into a string
             String result = readIt(is);
+            System.out.println(result);
             return result;
 
                 // Makes sure that the InputStream is closed after the app is
