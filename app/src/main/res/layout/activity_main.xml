@@ -47,6 +47,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
         android:visibility="visible">
 
         <RadioButton
@@ -68,6 +70,7 @@
         android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/label_accueil_2"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat"
@@ -78,14 +81,18 @@
         android:id="@+id/spinnerLignes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:width="2dp"
-        android:color="@color/colorPrimaryDark" />
+        android:background="@drawable/spinnerlayout"
+        android:visibility="visible" />
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/label_accueil_3"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat"
@@ -96,12 +103,17 @@
         android:id="@+id/spinnerDirections"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/spinnerlayout"
         android:visibility="visible" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/label_accueil_4"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat"
@@ -112,12 +124,20 @@
         android:id="@+id/spinnerArrets"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/spinnerlayout"
         android:visibility="visible" />
 
     <ListView
         android:id="@+id/listViewArrets"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/listview_border"
         android:visibility="visible" />
 
 
