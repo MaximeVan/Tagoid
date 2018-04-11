@@ -78,7 +78,9 @@
         android:id="@+id/spinnerLignes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible" />
+        android:visibility="visible"
+        android:width="2dp"
+        android:color="@color/colorPrimaryDark" />
 
     <TextView
         android:id="@+id/textView3"
