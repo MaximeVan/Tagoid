@@ -1,11 +1,16 @@
 package com.example.vanbossm.tagoid;
 
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.vanbossm.tagoid.services.TagDataProvider;
+import com.example.vanbossm.tagoid.services.TagDataReciever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,9 +28,27 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
 
-        System.out.println("ca passe par ici 1");
-        TagDataProvider tagDataProvider = new TagDataProvider();
-        System.out.println("ca passe par ici 3");
+        // Demarrage du service
+        Intent tagDataProvider = new Intent(this, TagDataProvider.class);
+        startService(tagDataProvider);
+
+
+
+        //IntentFilter statusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
+        // Adds a data filter for the HTTP scheme
+        //statusIntentFilter.addDataScheme("http");
+        // Instantiates a new DownloadStateReceiver
+        //TagDataReciever tagDataReciever = new TagDataReciever();
+        // Registers the DownloadStateReceiver and its intent filters
+        //LocalBroadcastManager.getInstance(this).registerReceiver(tagDataReciever,statusIntentFilter);
+
+
+
+
+
+
+
+
 
         /*try {
             downloadUrl();
