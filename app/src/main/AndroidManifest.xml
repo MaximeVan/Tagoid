@@ -18,6 +18,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
+        <service
+            android:name=".services.TagDataProvider"
+            android:exported="false"/>
+
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
