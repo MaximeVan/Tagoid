@@ -21,15 +21,9 @@
 
 
         <service
-            android:name=".services.TagDataProvider"
+            android:name=".MyService"
             android:exported="false">
         </service>
-
-        <receiver
-            android:name=".services.TagDataReciever">
-            <intent-filter android:priority="100">
-            </intent-filter>
-        </receiver>
 
     </application>
 

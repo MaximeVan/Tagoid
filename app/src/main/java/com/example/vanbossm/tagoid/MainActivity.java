@@ -1,5 +1,7 @@
 package com.example.vanbossm.tagoid;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -8,9 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import com.example.vanbossm.tagoid.services.TagDataProvider;
-import com.example.vanbossm.tagoid.services.TagDataReciever;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,22 +26,24 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Creation du broadcast receiver
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.e("RECEIVER", "Intent received " + intent.getStringExtra(Constants.EXTRA_ANSWER));
+            }
+        };
 
-        // Demarrage du service
-        Intent tagDataProvider = new Intent(this, TagDataProvider.class);
-        startService(tagDataProvider);
+        // Creation de intent filter
+        IntentFilter intentFilter = new IntentFilter(Constants.ACTION_DONE);
+        intentFilter.addAction("Envoi Intent");
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
+        Log.e("MAIN", "Done.");
 
-
-        //IntentFilter statusIntentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
-        // Adds a data filter for the HTTP scheme
-        //statusIntentFilter.addDataScheme("http");
-        // Instantiates a new DownloadStateReceiver
-        //TagDataReciever tagDataReciever = new TagDataReciever();
-        // Registers the DownloadStateReceiver and its intent filters
-        //LocalBroadcastManager.getInstance(this).registerReceiver(tagDataReciever,statusIntentFilter);
-
-
+        // Creation du service provider
+        Intent service = new Intent(this, MyService.class);
+        startService(service);
 
 
 
