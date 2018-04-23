@@ -34,14 +34,12 @@ public class MainActivity extends AppCompatActivity{
             }
         };
 
-        // Creation de intent filter
         IntentFilter intentFilter = new IntentFilter(Constants.ACTION_DONE);
-        intentFilter.addAction("Envoi Intent");
 
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
         Log.e("MAIN", "Done.");
 
-        // Creation du service provider
+        // Creation du service pour recuperer les lignes
         Intent service = new Intent(this, MyService.class);
         startService(service);
 
@@ -113,12 +111,12 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    public String readIt(InputStream stream) throws IOException, UnsupportedEncodingException {
+    public String readIt(InputStream stream) throws IOException {
         StringBuilder builder = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
         String line;
         while ((line = reader.readLine()) != null) {
-            builder.append(line + "\n");
+            builder.append(line).append("\n");
         }
         return builder.toString();
     }

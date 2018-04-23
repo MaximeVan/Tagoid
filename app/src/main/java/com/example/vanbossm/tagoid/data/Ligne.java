@@ -5,23 +5,23 @@ import java.util.Map;
 
 public class Ligne {
 
-    private String id;
+    private int id;
     private String shortName;
     private String longName;
     private String color;
     private String textColor;
     private String mode;
     private String type;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new HashMap<>();
 
     public Ligne() {
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 

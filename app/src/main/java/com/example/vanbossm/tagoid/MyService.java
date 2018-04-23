@@ -2,12 +2,15 @@ package com.example.vanbossm.tagoid;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.example.vanbossm.tagoid.data.Ligne;
 import com.example.vanbossm.tagoid.services.LignesService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,33 +26,37 @@ public class MyService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://data.metromobilite.fr/api/routers/default/index/routes/")
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
         LignesService lignesService = retrofit.create(LignesService.class);
         lignesService.getLignes().enqueue(new Callback<Ligne>() {
-
             @Override
-            public void onResponse(Call<Ligne> call, Response<Ligne> response) {
+            public void onResponse(@NonNull Call<Ligne> call, @NonNull Response<Ligne> response) {
                 if(response.isSuccessful()){
-                    Ligne answser = response.body();
+                    Ligne ligneAnswser = response.body();
+                    Log.e("MY_SERVICE","Line name :"+ligneAnswser.getLongName());
 
                     Intent intentToSend = new Intent(Constants.ACTION_DONE);
-                    intentToSend.putExtra(Constants.EXTRA_ANSWER,answser.getId());
+                    intentToSend.putExtra(Constants.EXTRA_ANSWER,ligneAnswser.getLongName());
 
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
                 } else {
                     // error response, no access to resource ?
-                    Log.e("MyService","Error response :"+response.message());
+                    Log.e("MY_SERVICE","Error response :"+response.message());
                 }
             }
 
             @Override
-            public void onFailure(Call<Ligne> call, Throwable t) {
+            public void onFailure(@NonNull Call<Ligne> call, @NonNull Throwable t) {
                 // something went completely south (like no internet connection)
-                Log.e("PROVIDER","Failure",t);
+                Log.e("MY_SERVICE","Failure",t);
             }
         });
     }
