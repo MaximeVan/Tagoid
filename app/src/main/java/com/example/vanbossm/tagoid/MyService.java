@@ -31,7 +31,7 @@ public class MyService extends IntentService {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://data.metromobilite.fr/api/routers/default/index/routes/")
+                .baseUrl("http://data.metromobilite.fr/api/routers/default/index/routes/")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
