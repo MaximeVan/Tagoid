@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity{
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.e("RECEIVER", "Intent received " + intent.getStringExtra(Constants.EXTRA_ANSWER));
+                Log.e("RECEIVER", "Intent received, make a notification here");
             }
         };
 

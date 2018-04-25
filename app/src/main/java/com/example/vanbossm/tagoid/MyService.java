@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.JsonReader;
 import android.util.Log;
 
 import com.example.vanbossm.tagoid.data.Ligne;
@@ -26,13 +27,13 @@ public class MyService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        Gson gson = new GsonBuilder()
+        /*Gson gson = new GsonBuilder()
                 .setLenient()
-                .create();
+                .create();*/
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://data.metromobilite.fr/api/routers/default/index/routes/")
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         LignesService lignesService = retrofit.create(LignesService.class);
@@ -41,10 +42,9 @@ public class MyService extends IntentService {
             public void onResponse(@NonNull Call<Ligne> call, @NonNull Response<Ligne> response) {
                 if(response.isSuccessful()){
                     Ligne ligneAnswser = response.body();
-                    Log.e("MY_SERVICE","Line name :"+ligneAnswser.getLongName());
+                    Log.e("MY_SERVICE","Line name :"+ligneAnswser);
 
                     Intent intentToSend = new Intent(Constants.ACTION_DONE);
-                    intentToSend.putExtra(Constants.EXTRA_ANSWER,ligneAnswser.getLongName());
 
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
                 } else {
@@ -56,6 +56,8 @@ public class MyService extends IntentService {
             @Override
             public void onFailure(@NonNull Call<Ligne> call, @NonNull Throwable t) {
                 // something went completely south (like no internet connection)
+
+                Log.e("MY_SERVICE","Body");
                 Log.e("MY_SERVICE","Failure",t);
             }
         });

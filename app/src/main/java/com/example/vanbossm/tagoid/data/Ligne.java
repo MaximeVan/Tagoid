@@ -1,27 +1,47 @@
 package com.example.vanbossm.tagoid.data;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 public class Ligne {
 
-    private int id;
+    @SerializedName("id")
+    @Expose
+    private String id;
+
+    @SerializedName("shortName")
+    @Expose
     private String shortName;
+
+    @SerializedName("longName")
+    @Expose
     private String longName;
+
+    @SerializedName("color")
+    @Expose
     private String color;
+
+    @SerializedName("textColor")
+    @Expose
     private String textColor;
+
+    @SerializedName("mode")
+    @Expose
     private String mode;
+
+    @SerializedName("type")
+    @Expose
     private String type;
-    private Map<String, Object> additionalProperties = new HashMap<>();
 
     public Ligne() {
+
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -72,13 +92,4 @@ public class Ligne {
     public void setType(String type) {
         this.type = type;
     }
-
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
-    }
-
 }
