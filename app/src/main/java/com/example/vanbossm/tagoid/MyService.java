@@ -12,6 +12,10 @@ import com.example.vanbossm.tagoid.services.LignesService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -25,25 +29,27 @@ public class MyService extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
+    protected void onHandleIntent(@Nullable final Intent intent) {
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://data.metromobilite.fr/")
+                .baseUrl("https://data.metromobilite.fr/")
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
         LignesService lignesService = retrofit.create(LignesService.class);
-        lignesService.getLignes().enqueue(new Callback<Ligne>() {
+        lignesService.getLignes().enqueue(new Callback<Ligne[]>() {
             @Override
-            public void onResponse(@NonNull Call<Ligne> call, @NonNull Response<Ligne> response) {
+            public void onResponse(@NonNull Call<Ligne[]> call, @NonNull Response<Ligne[]> response) {
                 if(response.isSuccessful()){
-                    Ligne ligneAnswser = response.body();
-                    Log.e("MY_SERVICE","Line name :"+ligneAnswser);
+                    Log.e("MY_SERVICE","Reponse recue !!");
+
+                    //List<Ligne> lignesList = Arrays.asList(response.body());
 
                     Intent intentToSend = new Intent(Constants.ACTION_DONE);
+                    intentToSend.putExtra("Lignes", response.body());
 
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
                 } else {
@@ -53,9 +59,9 @@ public class MyService extends IntentService {
             }
 
             @Override
-            public void onFailure(@NonNull Call<Ligne> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<Ligne[]> call, @NonNull Throwable t) {
                 // something went completely south (like no internet connection)
-                Log.e("MY_SERVICE","Failure",t);
+                Log.e("MY_SERVICE","Failure.",t);
             }
         });
     }
