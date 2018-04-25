@@ -6,6 +6,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface LignesService {
-    @GET("api")
+    @GET("api/routers/default/index/routes/")
     Call<Ligne> getLignes();
 }

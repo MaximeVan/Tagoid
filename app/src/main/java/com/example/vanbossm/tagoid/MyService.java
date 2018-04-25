@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.JsonReader;
 import android.util.Log;
 
 import com.example.vanbossm.tagoid.data.Ligne;
@@ -27,13 +26,13 @@ public class MyService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        /*Gson gson = new GsonBuilder()
+        Gson gson = new GsonBuilder()
                 .setLenient()
-                .create();*/
+                .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://data.metromobilite.fr/api/routers/default/index/routes/")
-                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://data.metromobilite.fr/")
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
         LignesService lignesService = retrofit.create(LignesService.class);
@@ -56,8 +55,6 @@ public class MyService extends IntentService {
             @Override
             public void onFailure(@NonNull Call<Ligne> call, @NonNull Throwable t) {
                 // something went completely south (like no internet connection)
-
-                Log.e("MY_SERVICE","Body");
                 Log.e("MY_SERVICE","Failure",t);
             }
         });

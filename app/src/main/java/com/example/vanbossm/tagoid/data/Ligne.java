@@ -8,34 +8,24 @@ public class Ligne {
     @SerializedName("id")
     @Expose
     private String id;
-
     @SerializedName("shortName")
     @Expose
     private String shortName;
-
     @SerializedName("longName")
     @Expose
     private String longName;
-
     @SerializedName("color")
     @Expose
     private String color;
-
     @SerializedName("textColor")
     @Expose
     private String textColor;
-
     @SerializedName("mode")
     @Expose
     private String mode;
-
     @SerializedName("type")
     @Expose
     private String type;
-
-    public Ligne() {
-
-    }
 
     public String getId() {
         return id;
@@ -92,4 +82,5 @@ public class Ligne {
     public void setType(String type) {
         this.type = type;
     }
+
 }
