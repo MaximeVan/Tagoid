@@ -1,25 +1,21 @@
 package com.example.vanbossm.tagoid;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class MainActivity extends AppCompatActivity{
+
+    private static int NOTIFICATION_ID = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +27,19 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.e("RECEIVER", "Intent received, make a notification here");
+
+                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+                NotificationCompat.Builder mBuilder =
+                        (NotificationCompat.Builder) new NotificationCompat.Builder(MainActivity.this)
+                                .setSmallIcon(android.R.drawable.sym_def_app_icon)
+                                .setContentTitle("Tagoid")
+                                .setContentText("Pwit pwit")
+                                .setContentIntent(pendingIntent);
+
+                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotificationManager.notify(001, mBuilder.build());
             }
         };
 
@@ -54,70 +63,5 @@ public class MainActivity extends AppCompatActivity{
         } catch (IOException e) {
             e.printStackTrace();
         }*/
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private String downloadUrl() throws IOException {
-        InputStream is = null;
-
-        String myurl = "https://data.metromobilite.fr/api/routers/default/index/routes";
-        URL url = new URL(myurl);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        try {
-            conn.setReadTimeout(10000);
-            conn.setConnectTimeout(15000);
-            conn.setRequestMethod("GET");
-            conn.setDoInput(true);
-            // Starts the query
-            conn.connect();
-            int response = conn.getResponseCode();
-            is = conn.getInputStream();
-
-            // Convert the InputStream into a string
-            String result = readIt(is);
-            System.out.println(result);
-            return result;
-
-                // Makes sure that the InputStream is closed after the app is
-                // finished using it.
-        }finally{
-                if (is != null) {
-                    is.close();
-                    conn.disconnect();
-                }
-        }
-    }
-
-    public String readIt(InputStream stream) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            builder.append(line).append("\n");
-        }
-        return builder.toString();
     }
 }
