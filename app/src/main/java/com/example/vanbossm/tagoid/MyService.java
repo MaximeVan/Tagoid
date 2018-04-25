@@ -46,9 +46,7 @@ public class MyService extends IntentService {
                 if(response.isSuccessful()){
                     Log.e("MY_SERVICE","Reponse recue !!");
 
-                    //List<Ligne> lignesList = Arrays.asList(response.body());
-
-                    Intent intentToSend = new Intent(Constants.ACTION_DONE);
+                    Intent intentToSend = new Intent("RecuperationLignes");
                     intentToSend.putExtra("Lignes", response.body());
 
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
