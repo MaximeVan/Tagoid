@@ -12,10 +12,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.example.vanbossm.tagoid.data.Ligne;
 
@@ -36,6 +39,8 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        displayNone();
+
         context = this;
         lignesBus = new ArrayList<Ligne>();
         lignesTram = new ArrayList<Ligne>();
@@ -45,23 +50,7 @@ public class MainActivity extends AppCompatActivity{
         {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
-                List<String> nomsLignes = new ArrayList<>();
-
-                if(checkedId == 2131558518) {
-                    Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner...");
-                    for (Ligne ligneBus: lignesBus) {
-                        nomsLignes.add(ligneBus.getLongName());
-                    }
-                } else {
-                    Log.e("RADIO_BUTTON_TRAM", "Radio button tram checked. Remplissage des spinner...");
-                    for (Ligne ligneTram: lignesTram) {
-                        nomsLignes.add(ligneTram.getLongName());
-                    }
-                }
-
-                ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsLignes);
-                spinnerLignes.setAdapter(spinnerAdapter);
+                fillSpinnerLignes(checkedId);
             }
         });
 
@@ -83,9 +72,8 @@ public class MainActivity extends AppCompatActivity{
                     }
                 }
 
-
-
-                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
+                // Notification
+                /*intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
                 PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
                 NotificationCompat.Builder mBuilder =
@@ -96,13 +84,9 @@ public class MainActivity extends AppCompatActivity{
                                 .setContentIntent(pendingIntent);
 
                 NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.notify(001, mBuilder.build());
+                mNotificationManager.notify(001, mBuilder.build());*/
             }
         };
-
-
-
-
 
         IntentFilter intentFilter = new IntentFilter(Constants.ACTION_DONE);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
@@ -111,5 +95,64 @@ public class MainActivity extends AppCompatActivity{
         Intent service = new Intent(this, MyService.class);
         Log.e("MAIN", "Demarrage du service.");
         startService(service);
+    }
+
+    private void fillSpinnerLignes(int checkedId) {
+        Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
+        List<String> nomsLignes = new ArrayList<>();
+
+        if(checkedId == 2131558518) {
+            Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner...");
+            for (Ligne ligneBus: lignesBus) {
+                nomsLignes.add(ligneBus.getLongName());
+            }
+        } else {
+            Log.e("RADIO_BUTTON_TRAM", "Radio button tram checked. Remplissage des spinner...");
+            for (Ligne ligneTram: lignesTram) {
+                nomsLignes.add(ligneTram.getLongName());
+            }
+        }
+
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsLignes);
+        spinnerLignes.setAdapter(spinnerAdapter);
+
+        displayLigneLayout();
+    }
+
+
+    public void displayNone() {
+        TextView tv2 = (TextView) findViewById(R.id.textView2);
+        TextView tv3 = (TextView) findViewById(R.id.textView3);
+        Spinner spinner1 = (Spinner) findViewById(R.id.spinnerLignes);
+        Spinner spinner2 = (Spinner) findViewById(R.id.spinnerArrets);
+        ListView lv1 = (ListView) findViewById(R.id.listViewArrets);
+
+        tv2.setVisibility(View.INVISIBLE);
+        tv3.setVisibility(View.INVISIBLE);
+        spinner1.setVisibility(View.INVISIBLE);
+        spinner2.setVisibility(View.INVISIBLE);
+        lv1.setVisibility(View.INVISIBLE);
+    }
+
+    public void displayLigneLayout() {
+        TextView tv = (TextView) findViewById(R.id.textView2);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerLignes);
+
+        tv.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.VISIBLE);
+    }
+
+    public void displayArretLayout() {
+        TextView tv = (TextView) findViewById(R.id.textView3);
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerArrets);
+
+        tv.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.VISIBLE);
+    }
+
+    public void displayListeLayout() {
+        ListView lv1 = (ListView) findViewById(R.id.listViewArrets);
+
+        lv1.setVisibility(View.VISIBLE);
     }
 }
