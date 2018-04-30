@@ -44,11 +44,12 @@ public class MyService extends IntentService {
             @Override
             public void onResponse(@NonNull Call<Ligne[]> call, @NonNull Response<Ligne[]> response) {
                 if(response.isSuccessful()){
-                    Log.e("MY_SERVICE","Reponse recue !!");
+                    Log.e("MY_SERVICE","Reponse recue.");
 
-                    Intent intentToSend = new Intent("RecuperationLignes");
-                    intentToSend.putExtra("Lignes", response.body());
+                    Intent intentToSend = new Intent(Constants.RECUPERATION_LIGNES)
+                            .putExtra("Lignes", response.body());
 
+                    Log.e("MY_SERVICE","Envoi en broadcast.");
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
                 } else {
                     // error response, no access to resource ?
