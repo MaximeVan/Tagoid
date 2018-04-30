@@ -12,10 +12,6 @@ import com.example.vanbossm.tagoid.services.LignesService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -44,23 +40,21 @@ public class MyService extends IntentService {
             @Override
             public void onResponse(@NonNull Call<Ligne[]> call, @NonNull Response<Ligne[]> response) {
                 if(response.isSuccessful()){
-                    Log.e("MY_SERVICE","Reponse recue.");
+                    Log.e("MY_SERVICE_LIGNES","Reponse recue.");
 
                     Intent intentToSend = new Intent(Constants.RECUPERATION_LIGNES)
                             .putExtra("Lignes", response.body());
 
-                    Log.e("MY_SERVICE","Envoi en broadcast.");
+                    Log.e("MY_SERVICE_LIGNES","Envoi en broadcast.");
                     LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
                 } else {
-                    // error response, no access to resource ?
-                    Log.e("MY_SERVICE","Error response :"+response.message());
+                    Log.e("MY_SERVICE_LIGNES","Error response, no access to ressources :"+response.message());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<Ligne[]> call, @NonNull Throwable t) {
-                // something went completely south (like no internet connection)
-                Log.e("MY_SERVICE","Failure.",t);
+                Log.e("MY_SERVICE_LIGNES","Failure.",t);
             }
         });
     }

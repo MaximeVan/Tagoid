@@ -1,15 +1,19 @@
 package com.example.vanbossm.tagoid;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,6 +23,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
 
 import java.util.ArrayList;
@@ -31,6 +36,7 @@ public class MainActivity extends AppCompatActivity{
     private Context context;
     private List<Ligne> lignesTram;
     private List<Ligne> lignesBus;
+    private List<Arret> arrets;
     private String radioButtonChecked;
 
     @Override
@@ -43,6 +49,7 @@ public class MainActivity extends AppCompatActivity{
         radioButtonChecked = "";
         lignesBus = new ArrayList<Ligne>();
         lignesTram = new ArrayList<Ligne>();
+        arrets = new ArrayList<Arret>();
 
         /*
         ============================================================================================
@@ -98,36 +105,32 @@ public class MainActivity extends AppCompatActivity{
             public void onReceive(Context context, Intent intent) {
                 Log.e("RECEIVER", "Broadcast recu : " + intent.getAction());
 
-                // Recuperation des lignes
-                Ligne[] toutesLignes = (Ligne[]) intent.getSerializableExtra("Lignes");
-                trierLignes(toutesLignes);
+                if(intent.getAction().equals(Constants.RECUPERATION_LIGNES)) {
+                    // Recuperation des lignes
+                    Ligne[] toutesLignes = (Ligne[]) intent.getSerializableExtra("Lignes");
+                    trierLignes(toutesLignes);
+                }
 
-
-
-                // Notification
-                /*intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
-                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
-                NotificationCompat.Builder mBuilder =
-                        (NotificationCompat.Builder) new NotificationCompat.Builder(MainActivity.this)
-                                .setSmallIcon(android.R.drawable.sym_def_app_icon)
-                                .setContentTitle("Tagoid")
-                                .setContentText("Pwit pwit")
-                                .setContentIntent(pendingIntent);
-
-                NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                mNotificationManager.notify(001, mBuilder.build());*/
+                if(intent.getAction().equals(Constants.RECUPERATION_ARRETS)) {
+                    // Recuperation des arrets
+                    Arret[] tousArrets = (Arret[]) intent.getSerializableExtra("Arrets");
+                    trierArrets(tousArrets);
+                }
             }
         };
 
-        // Recuperation des lignes
-        IntentFilter intentFilter = new IntentFilter(Constants.RECUPERATION_LIGNES);
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
+        // IntentFilter des lignes
+        IntentFilter intentFilterLignes = new IntentFilter(Constants.RECUPERATION_LIGNES);
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterLignes);
+
+        // IntentFilter des arrets
+        IntentFilter intentFilterArrets = new IntentFilter(Constants.RECUPERATION_ARRETS);
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterArrets);
 
         // Creation du service pour recuperer les lignes
-        Intent service = new Intent(this, MyService.class);
-        Log.e("MAIN", "Demarrage du service.");
-        startService(service);
+        Intent serviceLigne = new Intent(this, MyService.class);
+        Log.e("MAIN", "Demarrage du service lignes.");
+        startService(serviceLigne);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -152,18 +155,25 @@ public class MainActivity extends AppCompatActivity{
         lignesBus.sort(comp);
     }
 
+    private void trierArrets(Arret[] tousArrets) {
+        for(Arret arretCourant : tousArrets) {
+            arrets.add(arretCourant);
+        }
+        fillSpinnerArrets();
+    }
+
     private void fillSpinnerLignes(int checkedId) {
         Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
         List<String> nomsLignes = new ArrayList<>();
 
         if(checkedId == 2131558518) {
-            Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner...");
+            Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner lignes...");
             this.radioButtonChecked = "BUS";
             for (Ligne ligneBus: lignesBus) {
                 nomsLignes.add(ligneBus.getShortName());
             }
         } else {
-            Log.e("RADIO_BUTTON_TRAM", "Radio button tram checked. Remplissage des spinner...");
+            Log.e("RADIO_BUTTON_TRAM", "Radio button tram checked. Remplissage des spinner lignes...");
             this.radioButtonChecked = "TRAM";
             for (Ligne ligneTram: lignesTram) {
                 nomsLignes.add(ligneTram.getShortName());
@@ -174,12 +184,60 @@ public class MainActivity extends AppCompatActivity{
         spinnerLignes.setAdapter(spinnerAdapter);
 
         displayLigneLayout();
-        //fillSpinnerArrets(); TODO
+
+        // Creation du service pour recuperer les lignes
+        Intent serviceArret = new Intent(this, MyServiceArrets.class);
+        Log.e("MAIN", "Demarrage du service arrets.");
+        startService(serviceArret);
+    }
+
+    private void fillSpinnerArrets() {
+        Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
+        List<String> nomsArrets = new ArrayList<>();
+
+        Log.e("SPINNER_ARRETS", "Ligne choisie. Remplissage des spinner arrets...");
+        for (Arret arretCourant: arrets) {
+            nomsArrets.add(arretCourant.getName());
+        }
+
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
+        spinnerArrets.setAdapter(spinnerAdapter);
+
+        displayLigneLayout();
+        // fillListViewArrets(); TODO
     }
 
 
     /*
     ============================================================================================
+                                            Notification
+    ============================================================================================
+     */
+    public void sendNotification() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        NotificationCompat.Builder mBuilder =
+                (NotificationCompat.Builder) new NotificationCompat.Builder(MainActivity.this)
+                        .setSmallIcon(android.R.drawable.sym_def_app_icon)
+                        .setContentTitle("Tagoid")
+                        .setContentText("Pwit pwit")
+                        .setContentIntent(pendingIntent);
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(001, mBuilder.build());
+    }
+
+    /*
+    ============================================================================================
+    ============================================================================================
+     */
+
+
+
+    /*
+    ============================================================================================
+                                            Display
     ============================================================================================
      */
     public void displayNone() {
