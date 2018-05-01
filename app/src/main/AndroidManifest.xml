@@ -21,7 +21,11 @@
 
 
         <service
-            android:name=".MyService"
+            android:name=".Service_Lignes"
+            android:exported="false">
+        </service>
+        <service
+            android:name=".Service_Arrets"
             android:exported="false">
         </service>
 

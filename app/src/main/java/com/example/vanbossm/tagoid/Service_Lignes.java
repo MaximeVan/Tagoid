@@ -8,7 +8,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.example.vanbossm.tagoid.data.Ligne;
-import com.example.vanbossm.tagoid.services.LignesService;
+import com.example.vanbossm.tagoid.services.Service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -18,9 +18,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MyService extends IntentService {
+public class Service_Lignes extends IntentService {
 
-    public MyService() {
+    public Service_Lignes() {
         super("MyService");
     }
 
@@ -35,7 +35,7 @@ public class MyService extends IntentService {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        LignesService lignesService = retrofit.create(LignesService.class);
+        Service lignesService = retrofit.create(Service.class);
         lignesService.getLignes().enqueue(new Callback<Ligne[]>() {
             @Override
             public void onResponse(@NonNull Call<Ligne[]> call, @NonNull Response<Ligne[]> response) {
@@ -46,7 +46,7 @@ public class MyService extends IntentService {
                             .putExtra("Lignes", response.body());
 
                     Log.e("MY_SERVICE_LIGNES","Envoi en broadcast.");
-                    LocalBroadcastManager.getInstance(MyService.this).sendBroadcast(intentToSend);
+                    LocalBroadcastManager.getInstance(Service_Lignes.this).sendBroadcast(intentToSend);
                 } else {
                     Log.e("MY_SERVICE_LIGNES","Error response, no access to ressources :"+response.message());
                 }

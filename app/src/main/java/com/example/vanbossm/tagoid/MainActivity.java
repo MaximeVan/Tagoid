@@ -6,16 +6,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -67,24 +74,39 @@ public class MainActivity extends AppCompatActivity{
 
         final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
         spinnerLignes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            Ligne selectedLine = null;
+
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if(radioButtonChecked.equals("TRAM")) {
-                    for (Ligne ligne : lignesTram) {
-                        if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                            spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor()));
-                            break;
+                if(!spinnerLignes.getSelectedItem().toString().equals("...")) {
+                    if (radioButtonChecked.equals("TRAM")) {
+                        for (Ligne ligne : lignesTram) {
+                            if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
+                                //spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor())); TODO
+                                selectedLine = ligne;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if(radioButtonChecked.equals("BUS")) {
-                    for (Ligne ligne : lignesBus) {
-                        if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                            spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor()));
-                            break;
+                    if (radioButtonChecked.equals("BUS")) {
+                        for (Ligne ligne : lignesBus) {
+                            if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
+                                //spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor())); TODO
+                                selectedLine = ligne;
+                                break;
+                            }
                         }
                     }
+
+                    // Creation du service pour recuperer les lignes
+                    arrets.clear();
+                    Intent serviceArret = new Intent(context, Service_Arrets.class);
+                    serviceArret.putExtra("ligne", selectedLine.getId());
+                    Log.e("MAIN", "Demarrage du service arrets.");
+                    startService(serviceArret);
+                } else {
+                    spinnerLignes.setBackground(getResources().getDrawable(R.drawable.spinnerlayout));
                 }
             }
 
@@ -107,12 +129,14 @@ public class MainActivity extends AppCompatActivity{
 
                 if(intent.getAction().equals(Constants.RECUPERATION_LIGNES)) {
                     // Recuperation des lignes
+                    Log.e("RECEIVER", "Recuperation des lignes.");
                     Ligne[] toutesLignes = (Ligne[]) intent.getSerializableExtra("Lignes");
                     trierLignes(toutesLignes);
                 }
 
                 if(intent.getAction().equals(Constants.RECUPERATION_ARRETS)) {
                     // Recuperation des arrets
+                    Log.e("RECEIVER", "Recuperation des arrets.");
                     Arret[] tousArrets = (Arret[]) intent.getSerializableExtra("Arrets");
                     trierArrets(tousArrets);
                 }
@@ -128,7 +152,7 @@ public class MainActivity extends AppCompatActivity{
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterArrets);
 
         // Creation du service pour recuperer les lignes
-        Intent serviceLigne = new Intent(this, MyService.class);
+        Intent serviceLigne = new Intent(this, Service_Lignes.class);
         Log.e("MAIN", "Demarrage du service lignes.");
         startService(serviceLigne);
     }
@@ -165,6 +189,7 @@ public class MainActivity extends AppCompatActivity{
     private void fillSpinnerLignes(int checkedId) {
         Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
         List<String> nomsLignes = new ArrayList<>();
+        nomsLignes.add("...");
 
         if(checkedId == 2131558518) {
             Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner lignes...");
@@ -184,11 +209,6 @@ public class MainActivity extends AppCompatActivity{
         spinnerLignes.setAdapter(spinnerAdapter);
 
         displayLigneLayout();
-
-        // Creation du service pour recuperer les lignes
-        Intent serviceArret = new Intent(this, MyServiceArrets.class);
-        Log.e("MAIN", "Demarrage du service arrets.");
-        startService(serviceArret);
     }
 
     private void fillSpinnerArrets() {
@@ -203,7 +223,7 @@ public class MainActivity extends AppCompatActivity{
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
         spinnerArrets.setAdapter(spinnerAdapter);
 
-        displayLigneLayout();
+        displayArretLayout();
         // fillListViewArrets(); TODO
     }
 
