@@ -28,8 +28,13 @@
             android:name=".Service_Arrets"
             android:exported="false">
         </service>
+        <service
+            android:name=".Service_Stoptime"
+            android:exported="false">
+        </service>
 
     </application>
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 

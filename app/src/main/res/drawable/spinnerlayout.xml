@@ -19,7 +19,7 @@
             <item >
                 <bitmap
                     android:gravity="right|center"
-                    android:src="@drawable/down_arrow" />
+                    android:src="@drawable/arrow_down" />
             </item>
         </layer-list>
     </item>

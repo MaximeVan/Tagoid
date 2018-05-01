@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
+import com.example.vanbossm.tagoid.data.Stoptime;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -44,7 +45,10 @@ public class MainActivity extends AppCompatActivity{
     private List<Ligne> lignesTram;
     private List<Ligne> lignesBus;
     private List<Arret> arrets;
+    private List<Stoptime> stoptimes;
     private String radioButtonChecked;
+    private Ligne selectedLine;
+    private Arret selectedArret;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +58,12 @@ public class MainActivity extends AppCompatActivity{
 
         context = this;
         radioButtonChecked = "";
-        lignesBus = new ArrayList<Ligne>();
-        lignesTram = new ArrayList<Ligne>();
-        arrets = new ArrayList<Arret>();
+        lignesBus = new ArrayList<>();
+        lignesTram = new ArrayList<>();
+        arrets = new ArrayList<>();
+        stoptimes = new ArrayList<>();
+        selectedLine = null;
+        selectedArret = null;
 
         /*
         ============================================================================================
@@ -74,7 +81,6 @@ public class MainActivity extends AppCompatActivity{
 
         final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
         spinnerLignes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            Ligne selectedLine = null;
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -100,7 +106,6 @@ public class MainActivity extends AppCompatActivity{
                     }
 
                     // Creation du service pour recuperer les lignes
-                    arrets.clear();
                     Intent serviceArret = new Intent(context, Service_Arrets.class);
                     serviceArret.putExtra("ligne", selectedLine.getId());
                     Log.e("MAIN", "Demarrage du service arrets.");
@@ -112,7 +117,33 @@ public class MainActivity extends AppCompatActivity{
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 
+        final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
+        spinnerArrets.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(!spinnerArrets.getSelectedItem().toString().equals("...")) {
+                    for (Arret arret : arrets) {
+                        if (arret.getName().equals(spinnerArrets.getSelectedItem().toString())) {
+                            selectedArret = arret;
+                            break;
+                        }
+                    }
+
+                    // Creation du service pour recuperer les stoptimes
+                    Intent serviceStoptime = new Intent(context, Service_Stoptime.class);
+                    serviceStoptime.putExtra("arret", selectedArret.getCode());
+                    serviceStoptime.putExtra("ligne", selectedLine.getShortName());
+                    Log.e("MAIN", "Demarrage du service stoptimes.");
+                    startService(serviceStoptime);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
         /*
@@ -140,6 +171,13 @@ public class MainActivity extends AppCompatActivity{
                     Arret[] tousArrets = (Arret[]) intent.getSerializableExtra("Arrets");
                     trierArrets(tousArrets);
                 }
+
+                if(intent.getAction().equals(Constants.RECUPERATION_STOPTIMES)) {
+                    // Recuperation des arrets
+                    Log.e("RECEIVER", "Recuperation des stoptimes.");
+                    Stoptime[] tousStoptimes = (Stoptime[]) intent.getSerializableExtra("Stoptimes");
+                    trierStoptimes(tousStoptimes);
+                }
             }
         };
 
@@ -150,6 +188,10 @@ public class MainActivity extends AppCompatActivity{
         // IntentFilter des arrets
         IntentFilter intentFilterArrets = new IntentFilter(Constants.RECUPERATION_ARRETS);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterArrets);
+
+        // IntentFilter des stoptimes
+        IntentFilter intentFilterStoptimes = new IntentFilter(Constants.RECUPERATION_STOPTIMES);
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterStoptimes);
 
         // Creation du service pour recuperer les lignes
         Intent serviceLigne = new Intent(this, Service_Lignes.class);
@@ -180,10 +222,24 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void trierArrets(Arret[] tousArrets) {
+        arrets.clear();
+
         for(Arret arretCourant : tousArrets) {
             arrets.add(arretCourant);
         }
         fillSpinnerArrets();
+    }
+
+    public void trierStoptimes(Stoptime[] tousStoptimes) {
+        stoptimes.clear();
+
+        for (Stoptime currentStoptime : tousStoptimes) {
+            if(currentStoptime.getPattern().getId().split(":")[1].equals(selectedLine.getShortName())
+                    && currentStoptime.getPattern().getId().split(":")[0].equals("SEM")){
+                stoptimes.add(currentStoptime);
+            }
+        }
+        // fillListViewArrets(); TODO
     }
 
     private void fillSpinnerLignes(int checkedId) {
@@ -214,6 +270,7 @@ public class MainActivity extends AppCompatActivity{
     private void fillSpinnerArrets() {
         Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
         List<String> nomsArrets = new ArrayList<>();
+        nomsArrets.add("...");
 
         Log.e("SPINNER_ARRETS", "Ligne choisie. Remplissage des spinner arrets...");
         for (Arret arretCourant: arrets) {
@@ -224,7 +281,6 @@ public class MainActivity extends AppCompatActivity{
         spinnerArrets.setAdapter(spinnerAdapter);
 
         displayArretLayout();
-        // fillListViewArrets(); TODO
     }
 
 
