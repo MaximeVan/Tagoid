@@ -29,6 +29,7 @@ import com.example.vanbossm.tagoid.data.Time;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -109,6 +110,8 @@ public class MainActivity extends AppCompatActivity{
                     startService(serviceArret);
                 } else {
                     spinnerLignes.setBackground(getResources().getDrawable(R.drawable.spinnerlayout));
+                    displayListeLayout(false);
+                    displayArretLayout(false);
                 }
             }
 
@@ -136,6 +139,8 @@ public class MainActivity extends AppCompatActivity{
                     serviceStoptime.putExtra("ligne", selectedLine.getShortName());
                     Log.e("MAIN", "Demarrage du service stoptimes.");
                     startService(serviceStoptime);
+                } else {
+                    displayListeLayout(false);
                 }
             }
 
@@ -228,14 +233,22 @@ public class MainActivity extends AppCompatActivity{
 
     public void trierStoptimes(Stoptime[] tousStoptimes) {
         stoptimes.clear();
+        String dir1 = "";
+        String dir2 = "";
 
         for (Stoptime currentStoptime : tousStoptimes) {
             if(currentStoptime.getPattern().getId().split(":")[1].equals(selectedLine.getShortName())
                     && currentStoptime.getPattern().getId().split(":")[0].equals("SEM")){
                 stoptimes.add(currentStoptime);
+
+                if(currentStoptime.getPattern().getDir() == 1) {
+                    dir1 = currentStoptime.getPattern().getDesc();
+                } else {
+                    dir2 = currentStoptime.getPattern().getDesc();
+                }
             }
         }
-        fillListViewArrets();
+        fillListViewArrets(dir1, dir2);
     }
 
     public String convertirStoptime(Object time) {
@@ -299,29 +312,51 @@ public class MainActivity extends AppCompatActivity{
         displayArretLayout(true);
     }
 
-    private void fillListViewArrets() {
+    private void fillListViewArrets(String dir1, String dir2) {
         ListView listViewArrets1 = (ListView) findViewById(R.id.listViewArretsDir1);
         ListView listViewArrets2 = (ListView) findViewById(R.id.listViewArretsDir2);
-        List<String> timesDir1 = new ArrayList<>();
-        List<String> timesDir2 = new ArrayList<>();
-        int nbDir1 = 0;
-        int nbDir2 = 0;
+        List<Integer> timesDir1Int = new ArrayList<>();
+        List<Integer> timesDir2Int = new ArrayList<>();
+        List<String> timesDir1ToReturn = new ArrayList<>();
+        List<String> timesDir2ToReturn = new ArrayList<>();
 
         for(Stoptime currentStoptime : stoptimes) {
             if (currentStoptime.getPattern().getDir() == 1) {
-                timesDir1.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
-                nbDir1++;
+                int index = 0;
+                while(index < currentStoptime.getTimes().size()) {
+                    timesDir1Int.add(currentStoptime.getTimes().get(index).getRealtimeArrival());
+                    index++;
+                }
             }
             if (currentStoptime.getPattern().getDir() == 2) {
-                timesDir2.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
-                nbDir2++;
+                int index = 0;
+                while(index < currentStoptime.getTimes().size()) {
+                    timesDir2Int.add(currentStoptime.getTimes().get(index).getRealtimeArrival());
+                    index++;
+                }
             }
         }
 
-        ArrayAdapter<String> listViewAdapter1 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir1);
-        ArrayAdapter<String> listViewAdapter2 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir2);
+        Collections.sort(timesDir1Int);
+        Collections.sort(timesDir2Int);
+        for(int i = 0; i < 2; i++) {
+            if(timesDir1Int.get(i) != null) {
+                timesDir1ToReturn.add(convertirStoptime(timesDir1Int.get(i)));
+            }
+            if(timesDir2Int.get(i) != null) {
+                timesDir2ToReturn.add(convertirStoptime(timesDir2Int.get(i)));
+            }
+        }
+
+        ArrayAdapter<String> listViewAdapter1 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir1ToReturn);
+        ArrayAdapter<String> listViewAdapter2 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir2ToReturn);
+        TextView textView4 = (TextView) findViewById(R.id.textView4);
+        TextView textView5 = (TextView) findViewById(R.id.textView5);
+
         listViewArrets1.setAdapter(listViewAdapter1);
         listViewArrets2.setAdapter(listViewAdapter2);
+        textView4.setText("Dir. "+dir1);
+        textView5.setText("Dir. "+dir2);
 
         displayListeLayout(true);
     }
@@ -413,10 +448,14 @@ public class MainActivity extends AppCompatActivity{
         TextView tv5 = (TextView) findViewById(R.id.textView5);
 
         if(bool) {
-            lv1.setVisibility(View.VISIBLE);
-            lv2.setVisibility(View.VISIBLE);
-            tv4.setVisibility(View.VISIBLE);
-            tv5.setVisibility(View.VISIBLE);
+            if(tv4.getText() != "") {
+                lv1.setVisibility(View.VISIBLE);
+                tv4.setVisibility(View.VISIBLE);
+            }
+            if(tv5.getText() != "") {
+                lv2.setVisibility(View.VISIBLE);
+                tv5.setVisibility(View.VISIBLE);
+            }
         } else {
             lv1.setVisibility(View.INVISIBLE);
             lv2.setVisibility(View.INVISIBLE);
