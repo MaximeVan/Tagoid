@@ -6,23 +6,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -33,9 +25,12 @@ import android.widget.TextView;
 import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
 import com.example.vanbossm.tagoid.data.Stoptime;
+import com.example.vanbossm.tagoid.data.Time;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity{
@@ -239,7 +234,52 @@ public class MainActivity extends AppCompatActivity{
                 stoptimes.add(currentStoptime);
             }
         }
-        // fillListViewArrets(); TODO
+        fillListViewArrets();
+    }
+
+    private void fillListViewArrets() {
+        ListView listViewArrets = (ListView) findViewById(R.id.listViewArrets);
+        List<String> timesDir1 = new ArrayList<>();
+        List<String> timesDir2 = new ArrayList<>();
+        int nbDir1 = 0;
+        int nbDir2 = 0;
+
+        for(Stoptime currentStoptime : stoptimes) {
+            if (currentStoptime.getPattern().getDir() == 1) {
+                timesDir1.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
+            }
+            if (currentStoptime.getPattern().getDir() == 2) {
+                timesDir2.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
+            }
+        }
+
+        List<String> tousStoptimes = new ArrayList<>();
+        tousStoptimes.addAll(timesDir1);
+        tousStoptimes.addAll(timesDir2);
+        ArrayAdapter<String> listViewAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, tousStoptimes);
+        listViewArrets.setAdapter(listViewAdapter);
+
+        displayListeLayout();
+    }
+
+    public String convertirStoptime(Object time) {
+        String currentDate = new Date().toString();
+        String currentTime = currentDate.split(" ")[3];
+        long currentHourInSec = Integer.parseInt(currentTime.split(":")[0])*3600;
+        long currentMinutesInSec = Integer.parseInt(currentTime.split(":")[1])*60;
+        long currentSec = Integer.parseInt(currentTime.split(":")[2]);
+        long currentTimeInSec = currentHourInSec+currentMinutesInSec+currentSec;
+
+        long realTime = ((int) time-currentTimeInSec)/60;
+        String timeToReturn;
+
+        if (realTime < 1) {
+            timeToReturn = "< 1 min";
+        } else {
+            timeToReturn = realTime+"".split(",")[0] + " min";
+        }
+
+        return timeToReturn;
     }
 
     private void fillSpinnerLignes(int checkedId) {
