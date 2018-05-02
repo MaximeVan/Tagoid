@@ -5,7 +5,9 @@
     <string name="label_radioBtn_Tram">Tram</string>
     <string name="label_accueil_1">Sélectionner le moyen de transport préféré</string>
     <string name="label_accueil_2">Sélectionner une ligne</string>
-    <string name="label_accueil_4">Sélectionner un arrêt</string>
+    <string name="label_accueil_3">Sélectionner un arrêt</string>
+    <string name="label_accueil_4">Dir. </string>
+    <string name="label_accueil_5">Dir. </string>
     <string name="label_btnSettings_1">Désactiver notification</string>
     <string name="label_btnSettings_2">Ajouter aux favoris</string>
     <string name="label_btnSettings_3">Enlever des favoris</string>

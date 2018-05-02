@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity{
 
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                displayListeLayout(false);
+
                 if(!spinnerLignes.getSelectedItem().toString().equals("...")) {
                     if (radioButtonChecked.equals("TRAM")) {
                         for (Ligne ligne : lignesTram) {
@@ -203,7 +205,6 @@ public class MainActivity extends AppCompatActivity{
                 lignesBus.add(ligneCourante);
             }
         }
-
         // Tri par ordre alphabetique
         Comparator comp = new Comparator() {
             public int compare(Object o1, Object o2) {
@@ -235,31 +236,6 @@ public class MainActivity extends AppCompatActivity{
             }
         }
         fillListViewArrets();
-    }
-
-    private void fillListViewArrets() {
-        ListView listViewArrets = (ListView) findViewById(R.id.listViewArrets);
-        List<String> timesDir1 = new ArrayList<>();
-        List<String> timesDir2 = new ArrayList<>();
-        int nbDir1 = 0;
-        int nbDir2 = 0;
-
-        for(Stoptime currentStoptime : stoptimes) {
-            if (currentStoptime.getPattern().getDir() == 1) {
-                timesDir1.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
-            }
-            if (currentStoptime.getPattern().getDir() == 2) {
-                timesDir2.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
-            }
-        }
-
-        List<String> tousStoptimes = new ArrayList<>();
-        tousStoptimes.addAll(timesDir1);
-        tousStoptimes.addAll(timesDir2);
-        ArrayAdapter<String> listViewAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, tousStoptimes);
-        listViewArrets.setAdapter(listViewAdapter);
-
-        displayListeLayout();
     }
 
     public String convertirStoptime(Object time) {
@@ -304,7 +280,7 @@ public class MainActivity extends AppCompatActivity{
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsLignes);
         spinnerLignes.setAdapter(spinnerAdapter);
 
-        displayLigneLayout();
+        displayLigneLayout(true);
     }
 
     private void fillSpinnerArrets() {
@@ -320,8 +296,36 @@ public class MainActivity extends AppCompatActivity{
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
         spinnerArrets.setAdapter(spinnerAdapter);
 
-        displayArretLayout();
+        displayArretLayout(true);
     }
+
+    private void fillListViewArrets() {
+        ListView listViewArrets1 = (ListView) findViewById(R.id.listViewArretsDir1);
+        ListView listViewArrets2 = (ListView) findViewById(R.id.listViewArretsDir2);
+        List<String> timesDir1 = new ArrayList<>();
+        List<String> timesDir2 = new ArrayList<>();
+        int nbDir1 = 0;
+        int nbDir2 = 0;
+
+        for(Stoptime currentStoptime : stoptimes) {
+            if (currentStoptime.getPattern().getDir() == 1) {
+                timesDir1.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
+                nbDir1++;
+            }
+            if (currentStoptime.getPattern().getDir() == 2) {
+                timesDir2.add(convertirStoptime(currentStoptime.getTimes().get(0).getRealtimeArrival()));
+                nbDir2++;
+            }
+        }
+
+        ArrayAdapter<String> listViewAdapter1 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir1);
+        ArrayAdapter<String> listViewAdapter2 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir2);
+        listViewArrets1.setAdapter(listViewAdapter1);
+        listViewArrets2.setAdapter(listViewAdapter2);
+
+        displayListeLayout(true);
+    }
+
 
 
     /*
@@ -359,37 +363,66 @@ public class MainActivity extends AppCompatActivity{
     public void displayNone() {
         TextView tv2 = (TextView) findViewById(R.id.textView2);
         TextView tv3 = (TextView) findViewById(R.id.textView3);
+        TextView tv4 = (TextView) findViewById(R.id.textView4);
+        TextView tv5 = (TextView) findViewById(R.id.textView5);
         Spinner spinner1 = (Spinner) findViewById(R.id.spinnerLignes);
         Spinner spinner2 = (Spinner) findViewById(R.id.spinnerArrets);
-        ListView lv1 = (ListView) findViewById(R.id.listViewArrets);
+        ListView lv1 = (ListView) findViewById(R.id.listViewArretsDir1);
+        ListView lv2 = (ListView) findViewById(R.id.listViewArretsDir2);
 
         tv2.setVisibility(View.INVISIBLE);
         tv3.setVisibility(View.INVISIBLE);
+        tv4.setVisibility(View.INVISIBLE);
+        tv5.setVisibility(View.INVISIBLE);
         spinner1.setVisibility(View.INVISIBLE);
         spinner2.setVisibility(View.INVISIBLE);
         lv1.setVisibility(View.INVISIBLE);
+        lv2.setVisibility(View.INVISIBLE);
     }
 
-    public void displayLigneLayout() {
+    public void displayLigneLayout(boolean bool) {
         TextView tv = (TextView) findViewById(R.id.textView2);
         Spinner spinner = (Spinner) findViewById(R.id.spinnerLignes);
 
-        tv.setVisibility(View.VISIBLE);
-        spinner.setVisibility(View.VISIBLE);
+        if(bool) {
+            tv.setVisibility(View.VISIBLE);
+            spinner.setVisibility(View.VISIBLE);
+        } else {
+            tv.setVisibility(View.INVISIBLE);
+            spinner.setVisibility(View.INVISIBLE);
+        }
     }
 
-    public void displayArretLayout() {
+    public void displayArretLayout(boolean bool) {
         TextView tv = (TextView) findViewById(R.id.textView3);
         Spinner spinner = (Spinner) findViewById(R.id.spinnerArrets);
 
-        tv.setVisibility(View.VISIBLE);
-        spinner.setVisibility(View.VISIBLE);
+        if(bool) {
+            tv.setVisibility(View.VISIBLE);
+            spinner.setVisibility(View.VISIBLE);
+        } else {
+            tv.setVisibility(View.INVISIBLE);
+            spinner.setVisibility(View.INVISIBLE);
+        }
     }
 
-    public void displayListeLayout() {
-        ListView lv1 = (ListView) findViewById(R.id.listViewArrets);
+    public void displayListeLayout(boolean bool) {
+        ListView lv1 = (ListView) findViewById(R.id.listViewArretsDir1);
+        ListView lv2 = (ListView) findViewById(R.id.listViewArretsDir2);
+        TextView tv4 = (TextView) findViewById(R.id.textView4);
+        TextView tv5 = (TextView) findViewById(R.id.textView5);
 
-        lv1.setVisibility(View.VISIBLE);
+        if(bool) {
+            lv1.setVisibility(View.VISIBLE);
+            lv2.setVisibility(View.VISIBLE);
+            tv4.setVisibility(View.VISIBLE);
+            tv5.setVisibility(View.VISIBLE);
+        } else {
+            lv1.setVisibility(View.INVISIBLE);
+            lv2.setVisibility(View.INVISIBLE);
+            tv4.setVisibility(View.INVISIBLE);
+            tv5.setVisibility(View.INVISIBLE);
+        }
     }
     /*
     ============================================================================================
