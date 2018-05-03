@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -134,11 +136,23 @@ public class MainActivity extends AppCompatActivity{
                     }
 
                     // Creation du service pour recuperer les stoptimes
-                    Intent serviceStoptime = new Intent(context, Service_Stoptime.class);
+                    final Intent serviceStoptime = new Intent(context, Service_Stoptime.class);
                     serviceStoptime.putExtra("arret", selectedArret.getCode());
                     serviceStoptime.putExtra("ligne", selectedLine.getShortName());
                     Log.e("MAIN", "Demarrage du service stoptimes.");
                     startService(serviceStoptime);
+
+                    Timer timer = new Timer();
+                    TimerTask timerTask = new TimerTask() {
+                        @Override
+                        public void run() {
+                            if(!spinnerLignes.getSelectedItem().toString().equals("...") && !spinnerArrets.getSelectedItem().toString().equals("...")) {
+                                Log.e("TIMER", "Rafraichissement des stoptimes.");
+                                startService(serviceStoptime);
+                            }
+                        }
+                    };
+                    timer.schedule(timerTask, 0, 30000);
                 } else {
                     displayListeLayout(false);
                 }
@@ -340,10 +354,10 @@ public class MainActivity extends AppCompatActivity{
         Collections.sort(timesDir1Int);
         Collections.sort(timesDir2Int);
         for(int i = 0; i < 2; i++) {
-            if(timesDir1Int.get(i) != null) {
+            if(timesDir1Int.size() >= i+1) {
                 timesDir1ToReturn.add(convertirStoptime(timesDir1Int.get(i)));
             }
-            if(timesDir2Int.get(i) != null) {
+            if(timesDir2Int.size() >= i+1) {
                 timesDir2ToReturn.add(convertirStoptime(timesDir2Int.get(i)));
             }
         }
