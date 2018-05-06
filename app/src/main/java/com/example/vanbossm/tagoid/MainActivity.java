@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity{
         fillListViewArrets(dir1, dir2);
     }
 
-    public String convertirStoptime(Object time) {
+    public String convertirStoptime(Double time) {
         String currentDate = new Date().toString();
         String currentTime = currentDate.split(" ")[3];
         long currentHourInSec = Integer.parseInt(currentTime.split(":")[0])*3600;
@@ -273,16 +273,16 @@ public class MainActivity extends AppCompatActivity{
         long currentSec = Integer.parseInt(currentTime.split(":")[2]);
         long currentTimeInSec = currentHourInSec+currentMinutesInSec+currentSec;
 
-        long realTime = ((int) time-currentTimeInSec)/60;
+        Double realTime = ((Double) time-currentTimeInSec)/60;
         String timeToReturn;
 
         if (realTime < 1) {
-            timeToReturn = "< 1 min";
+            timeToReturn = "< 1.0";
         } else {
-            timeToReturn = realTime+"".split(",")[0] + " min";
+            timeToReturn = Math.floor(realTime)+"";// + " min";
         }
 
-        return timeToReturn;
+        return timeToReturn.substring(0, timeToReturn.length()-2) + " min";
     }
 
     private void fillSpinnerLignes(int checkedId) {
@@ -329,8 +329,8 @@ public class MainActivity extends AppCompatActivity{
     private void fillListViewArrets(String dir1, String dir2) {
         ListView listViewArrets1 = (ListView) findViewById(R.id.listViewArretsDir1);
         ListView listViewArrets2 = (ListView) findViewById(R.id.listViewArretsDir2);
-        List<Integer> timesDir1Int = new ArrayList<>();
-        List<Integer> timesDir2Int = new ArrayList<>();
+        List<Double> timesDir1Double = new ArrayList<>();
+        List<Double> timesDir2Double = new ArrayList<>();
         List<String> timesDir1ToReturn = new ArrayList<>();
         List<String> timesDir2ToReturn = new ArrayList<>();
 
@@ -338,27 +338,39 @@ public class MainActivity extends AppCompatActivity{
             if (currentStoptime.getPattern().getDir() == 1) {
                 int index = 0;
                 while(index < currentStoptime.getTimes().size()) {
-                    timesDir1Int.add(currentStoptime.getTimes().get(index).getRealtimeArrival());
+                    if (currentStoptime.getTimes().get(index).getRealtimeDeparture() != null) {
+                        timesDir1Double.add((Double) currentStoptime.getTimes().get(index).getRealtimeDeparture());
+                    } else {
+                        timesDir1Double.add(99999.0);
+                    }
                     index++;
                 }
             }
             if (currentStoptime.getPattern().getDir() == 2) {
                 int index = 0;
                 while(index < currentStoptime.getTimes().size()) {
-                    timesDir2Int.add(currentStoptime.getTimes().get(index).getRealtimeArrival());
+                    if (currentStoptime.getTimes().get(index).getRealtimeDeparture() != null) {
+                        timesDir2Double.add((Double) currentStoptime.getTimes().get(index).getRealtimeDeparture());
+                    } else {
+                        timesDir2Double.add(99999.0);
+                    }
                     index++;
                 }
             }
         }
 
-        Collections.sort(timesDir1Int);
-        Collections.sort(timesDir2Int);
+        Collections.sort(timesDir1Double);
+        Collections.sort(timesDir2Double);
         for(int i = 0; i < 2; i++) {
-            if(timesDir1Int.size() >= i+1) {
-                timesDir1ToReturn.add(convertirStoptime(timesDir1Int.get(i)));
+            if(timesDir1Double.get(i) != 99999.0) {
+                timesDir1ToReturn.add(convertirStoptime(timesDir1Double.get(i)));
+            } else {
+                timesDir1ToReturn.add("--");
             }
-            if(timesDir2Int.size() >= i+1) {
-                timesDir2ToReturn.add(convertirStoptime(timesDir2Int.get(i)));
+            if(timesDir2Double.get(i) != 99999.0) {
+                timesDir2ToReturn.add(convertirStoptime(timesDir2Double.get(i)));
+            } else {
+                timesDir2ToReturn.add("--");
             }
         }
 
