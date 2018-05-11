@@ -14,6 +14,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -21,6 +23,7 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
@@ -215,6 +218,44 @@ public class MainActivity extends AppCompatActivity{
         startService(serviceLigne);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.action_settings_addAsFav:
+                addAsFavorite();
+                return true;
+            case R.id.action_settings_favs:
+                // TODO
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void addAsFavorite() {
+        boolean valid = false;
+        final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
+        final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
+
+        if(spinnerArrets.getSelectedItem() != null && !spinnerArrets.getSelectedItem().equals("...") && !spinnerLignes.getSelectedItem().equals("...")) {
+            Toast.makeText(this, "Ajout aux favori.", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    /*
+    ============================================================================================
+                                    Algorithmes de tri
+    ============================================================================================
+     */
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void trierLignes(Ligne[] toutesLignes) {
         for (Ligne ligneCourante : toutesLignes) {
@@ -264,6 +305,10 @@ public class MainActivity extends AppCompatActivity{
         }
         fillListViewArrets(dir1, dir2);
     }
+    /*
+    ============================================================================================
+    ============================================================================================
+    */
 
     public String convertirStoptime(Double time) {
         String currentDate = new Date().toString();
@@ -285,6 +330,11 @@ public class MainActivity extends AppCompatActivity{
         return timeToReturn.substring(0, timeToReturn.length()-2) + " min";
     }
 
+    /*
+    ============================================================================================
+                                          Gestion IHM
+    ============================================================================================
+    */
     private void fillSpinnerLignes(int checkedId) {
         Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
         List<String> nomsLignes = new ArrayList<>();
@@ -386,6 +436,10 @@ public class MainActivity extends AppCompatActivity{
 
         displayListeLayout(true);
     }
+    /*
+    ============================================================================================
+    ============================================================================================
+    */
 
 
 

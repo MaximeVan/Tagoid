@@ -4,7 +4,15 @@
     tools:context="com.example.vanbossm.tagoid.MainActivity">
     <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings_favs"
+        android:title="@string/action_settings_favs"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings_addAsFav"
+        android:title="@string/action_settings_addAsFavs"
+        android:icon="@drawable/add_favorite_star"
+        app:showAsAction="ifRoom" />
 </menu>

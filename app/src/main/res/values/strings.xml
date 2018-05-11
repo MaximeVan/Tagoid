@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Tagoid</string>
     <string name="action_settings">Settings</string>
+    <string name="action_settings_favs">Mes favoris</string>
+    <string name="action_settings_addAsFavs">Ajouter en favori</string>
     <string name="label_radioBtn_Bus">Bus</string>
     <string name="label_radioBtn_Tram">Tram</string>
     <string name="label_accueil_1">Sélectionner le moyen de transport préféré</string>
