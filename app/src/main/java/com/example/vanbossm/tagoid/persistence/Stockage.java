@@ -57,4 +57,25 @@ public class Stockage implements StockageService {
         favoris.add(favori);
         store(context, favoris);
     }
+
+    public void remove(Context context, String key) {
+        String nomLigne = key.split(" : ")[0].split(" ")[1];
+        String nomArret = key.split(" : ")[1];
+
+        SharedPreferences preferences = context.getSharedPreferences("preference", 0);
+        Gson gson = new Gson();
+
+        String value = preferences.getString("preferenceJSON", "");
+        List<Favori> favoris = gson.fromJson(value, new TypeToken<ArrayList<Favori>>(){}.getType());
+
+        for(int i = 0; i < favoris.size(); i++) {
+            if(favoris.get(i).getLigne().getShortName().equals(nomLigne)
+                    && favoris.get(i).getArret().getName().equals(nomArret)) {
+                favoris.remove(i);
+            }
+        }
+
+        clear(context);
+        store(context, favoris);
+    }
 }

@@ -426,12 +426,12 @@ public class MainActivity extends AppCompatActivity{
         Collections.sort(timesDir1Double);
         Collections.sort(timesDir2Double);
         for(int i = 0; i < 2; i++) {
-            if(timesDir1Double.get(i) != 99999.0) {
+            if(timesDir1Double.size() > i && timesDir1Double.get(i) != 99999.0) {
                 timesDir1ToReturn.add(convertirStoptime(timesDir1Double.get(i)));
             } else {
                 timesDir1ToReturn.add("--");
             }
-            if(timesDir2Double.get(i) != 99999.0) {
+            if(timesDir2Double.size() > i && timesDir2Double.get(i) != 99999.0) {
                 timesDir2ToReturn.add(convertirStoptime(timesDir2Double.get(i)));
             } else {
                 timesDir2ToReturn.add("--");

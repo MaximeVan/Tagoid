@@ -3,6 +3,16 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/label_favoris_1"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat"
+        android:textSize="18sp"
+        android:visibility="visible" />
+
     <com.baoyz.swipemenulistview.SwipeMenuListView
         android:id="@+id/listViewFavoris"
         android:layout_width="match_parent"

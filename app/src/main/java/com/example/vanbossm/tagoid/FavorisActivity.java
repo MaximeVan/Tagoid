@@ -66,8 +66,9 @@ public class FavorisActivity extends AppCompatActivity {
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 switch (index) {
                     case 0:
-                        adapteur.remove(index);
-                        stockage.clear(getApplicationContext()); // TODO n'en delete qu'un seul
+                        //stockage.clear(getApplicationContext()); // TODO n'en delete qu'un seul
+                        stockage.remove(getApplicationContext(), smlv.getItemAtPosition(position).toString());
+                        adapteur.remove(smlv.getItemAtPosition(position));
                         break;
                 }
                 return false;
