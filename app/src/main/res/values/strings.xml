@@ -6,7 +6,7 @@
     <string name="action_settings_addAsFavs">Ajouter en favori</string>
     <string name="label_radioBtn_Bus">Bus</string>
     <string name="label_radioBtn_Tram">Tram</string>
-    <string name="label_favoris_1">Pour supprimer un favori, swipez vers la gauche.</string>
+    <string name="label_favoris_1">Pour supprimer un favori, glissez vers la gauche.</string>
     <string name="label_accueil_1">Sélectionner le moyen de transport préféré</string>
     <string name="label_accueil_2">Sélectionner une ligne</string>
     <string name="label_accueil_3">Sélectionner un arrêt</string>

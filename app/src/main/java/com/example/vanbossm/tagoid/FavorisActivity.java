@@ -1,9 +1,12 @@
 package com.example.vanbossm.tagoid;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -12,6 +15,8 @@ import com.baoyz.swipemenulistview.SwipeMenu;
 import com.baoyz.swipemenulistview.SwipeMenuCreator;
 import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
+import com.example.vanbossm.tagoid.data.Arret;
+import com.example.vanbossm.tagoid.data.Ligne;
 import com.example.vanbossm.tagoid.persistence.Favori;
 import com.example.vanbossm.tagoid.persistence.Stockage;
 import com.example.vanbossm.tagoid.persistence.StockageService;
@@ -32,6 +37,26 @@ public class FavorisActivity extends AppCompatActivity {
 
         this.favoris = stockage.restore(getApplicationContext());
         fillListViewFavoris();
+
+        final SwipeMenuListView smlv = (SwipeMenuListView) findViewById(R.id.listViewFavoris);
+        smlv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String nomLigne = smlv.getItemAtPosition(position).toString().split(" : ")[0].split(" ")[1];
+                String nomArret = smlv.getItemAtPosition(position).toString().split(" : ")[1];
+
+                for(Favori favori : favoris) {
+                    if(favori.getLigne().getShortName().equals(nomLigne)
+                            && favori.getArret().getName().equals(nomArret)) {
+                        Intent returnIntent = new Intent();
+                        returnIntent.putExtra("ligneChoisie", nomLigne);
+                        returnIntent.putExtra("arretChoisi", nomArret);
+                        setResult(RESULT_OK,returnIntent);
+                        finish();
+                    }
+                }
+            }
+        });
     }
 
     private void fillListViewFavoris() {

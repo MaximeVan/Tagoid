@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -218,6 +219,42 @@ public class MainActivity extends AppCompatActivity{
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                String ligneChoisie = data.getStringExtra("ligneChoisie");
+                String arretChoisi = data.getStringExtra("arretChoisi");
+
+                final RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+                final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
+                final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
+
+                for(int i = 0; i < this.lignesTram.size(); i++) {
+                    if(this.lignesTram.get(i).getShortName().equals(ligneChoisie)) {
+                        radioGroup.check(R.id.radioButtonTram);
+                        spinnerLignes.setSelection(i+1);
+                        break;
+                    }
+                }
+
+                for(int i = 0; i < this.lignesBus.size(); i++) {
+                    if(this.lignesBus.get(i).getShortName().equals(ligneChoisie)) {
+                        radioGroup.check(R.id.radioButtonBus);
+                        spinnerLignes.setSelection(i+1);
+                    }
+                }
+
+                // TODO CA NE MARCHE PAS
+                for(int i = 0; i < this.arrets.size(); i++) {
+                    if (this.arrets.get(i).getName().equals(arretChoisi)) {
+                        spinnerArrets.setSelection(i);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
@@ -240,11 +277,11 @@ public class MainActivity extends AppCompatActivity{
     private void ouvrirFavoris() {
         StockageService stockage = new Stockage();
         List<Favori> favoris = stockage.restore(this);
-        if (favoris == null) {
-            Toast.makeText(MainActivity.this, "Aucun favori.", Toast.LENGTH_SHORT).show();
-        } else {
+        if (favoris != null && favoris.size() != 0) {
             Intent favorisActivity = new Intent(getApplicationContext(), FavorisActivity.class);
             startActivityForResult(favorisActivity, 1);
+        } else {
+            Toast.makeText(MainActivity.this, "Aucun favori.", Toast.LENGTH_SHORT).show();
         }
     }
 
