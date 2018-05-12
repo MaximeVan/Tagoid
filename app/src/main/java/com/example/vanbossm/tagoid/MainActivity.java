@@ -28,9 +28,10 @@ import android.widget.Toast;
 import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
 import com.example.vanbossm.tagoid.data.Stoptime;
-import com.example.vanbossm.tagoid.data.Time;
+import com.example.vanbossm.tagoid.persistence.Favori;
+import com.example.vanbossm.tagoid.persistence.Stockage;
+import com.example.vanbossm.tagoid.persistence.StockageService;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -91,7 +92,6 @@ public class MainActivity extends AppCompatActivity{
                     if (radioButtonChecked.equals("TRAM")) {
                         for (Ligne ligne : lignesTram) {
                             if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                                //spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor())); TODO
                                 selectedLine = ligne;
                                 break;
                             }
@@ -101,7 +101,6 @@ public class MainActivity extends AppCompatActivity{
                     if (radioButtonChecked.equals("BUS")) {
                         for (Ligne ligne : lignesBus) {
                             if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                                //spinnerLignes.setBackgroundColor(Color.parseColor("#" + ligne.getColor())); TODO
                                 selectedLine = ligne;
                                 break;
                             }
@@ -231,19 +230,34 @@ public class MainActivity extends AppCompatActivity{
                 addAsFavorite();
                 return true;
             case R.id.action_settings_favs:
-                // TODO
+                ouvrirFavoris();
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void ouvrirFavoris() {
+        StockageService stockage = new Stockage();
+        List<Favori> favoris = stockage.restore(this);
+        if (favoris == null) {
+            Toast.makeText(MainActivity.this, "Aucun favori.", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent favorisActivity = new Intent(getApplicationContext(), FavorisActivity.class);
+            startActivityForResult(favorisActivity, 1);
+        }
+    }
+
     public void addAsFavorite() {
-        boolean valid = false;
         final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
         final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
 
         if(spinnerArrets.getSelectedItem() != null && !spinnerArrets.getSelectedItem().equals("...") && !spinnerLignes.getSelectedItem().equals("...")) {
+            Favori newFavori = new Favori(selectedLine, selectedArret);
+
+            StockageService stockage = new Stockage();
+            stockage.add(getApplicationContext(), newFavori);
+
             Toast.makeText(this, "Ajout aux favori.", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt.", Toast.LENGTH_LONG).show();
@@ -318,7 +332,7 @@ public class MainActivity extends AppCompatActivity{
         long currentSec = Integer.parseInt(currentTime.split(":")[2]);
         long currentTimeInSec = currentHourInSec+currentMinutesInSec+currentSec;
 
-        Double realTime = ((Double) time-currentTimeInSec)/60;
+        Double realTime = (time-currentTimeInSec)/60;
         String timeToReturn;
 
         if (realTime < 1) {
@@ -340,7 +354,7 @@ public class MainActivity extends AppCompatActivity{
         List<String> nomsLignes = new ArrayList<>();
         nomsLignes.add("...");
 
-        if(checkedId == 2131558518) {
+        if(checkedId == R.id.radioButtonBus) {
             Log.e("RADIO_BUTTON_BUS", "Radio button bus checked. Remplissage des spinner lignes...");
             this.radioButtonChecked = "BUS";
             for (Ligne ligneBus: lignesBus) {
@@ -460,7 +474,7 @@ public class MainActivity extends AppCompatActivity{
                         .setContentIntent(pendingIntent);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(001, mBuilder.build());
+        mNotificationManager.notify(1, mBuilder.build());
     }
 
     /*

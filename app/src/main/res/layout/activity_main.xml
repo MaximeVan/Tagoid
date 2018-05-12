@@ -124,7 +124,6 @@
         android:textSize="15sp"
         android:visibility="visible" />
 
-
     <ListView
         android:id="@+id/listViewArretsDir2"
         android:layout_width="match_parent"
