@@ -3,8 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.vanbossm.tagoid.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:title="@string/action_settings"
+        android:id="@+id/action_settings_enableNotification"
+        android:title="@string/action_settings_activerNotification"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings_disableNotification"
+        android:title="@string/action_settings_desactiverNotification"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_settings_favs"

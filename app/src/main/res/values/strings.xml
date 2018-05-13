@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Tagoid</string>
     <string name="favoriActivity_name">Favoris</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings_activerNotification">Activer le suivi</string>
+    <string name="action_settings_desactiverNotification">Désactiver le suivi</string>
     <string name="action_settings_favs">Mes favoris</string>
     <string name="action_settings_addAsFavs">Ajouter en favori</string>
     <string name="label_radioBtn_Bus">Bus</string>

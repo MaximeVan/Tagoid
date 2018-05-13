@@ -20,7 +20,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -50,8 +49,17 @@ public class MainActivity extends AppCompatActivity{
     private List<Arret> arrets;
     private List<Stoptime> stoptimes;
     private String radioButtonChecked;
-    private Ligne selectedLine;
+    private Ligne selectedLigne;
     private Arret selectedArret;
+    private String dir1;
+    private String dir2;
+    private List<String> timesDir1ToReturn;
+    private List<String> timesDir2ToReturn;
+    private String nomLigneFromFavoris;
+    private String nomArretFromFavoris;
+    private Ligne notificationLigne;
+    private Arret notificationArret;
+    private boolean suiviActif;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +73,17 @@ public class MainActivity extends AppCompatActivity{
         lignesTram = new ArrayList<>();
         arrets = new ArrayList<>();
         stoptimes = new ArrayList<>();
-        selectedLine = null;
+        selectedLigne = null;
         selectedArret = null;
+        dir1 = "";
+        dir2 = "";
+        timesDir1ToReturn = new ArrayList<>();
+        timesDir2ToReturn = new ArrayList<>();
+        nomLigneFromFavoris = "";
+        nomArretFromFavoris = "";
+        notificationArret = null;
+        selectedArret = null;
+        this.suiviActif = false;
 
         /*
         ============================================================================================
@@ -93,7 +110,7 @@ public class MainActivity extends AppCompatActivity{
                     if (radioButtonChecked.equals("TRAM")) {
                         for (Ligne ligne : lignesTram) {
                             if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                                selectedLine = ligne;
+                                selectedLigne = ligne;
                                 break;
                             }
                         }
@@ -102,15 +119,15 @@ public class MainActivity extends AppCompatActivity{
                     if (radioButtonChecked.equals("BUS")) {
                         for (Ligne ligne : lignesBus) {
                             if (ligne.getShortName().equals(spinnerLignes.getSelectedItem().toString())) {
-                                selectedLine = ligne;
+                                selectedLigne = ligne;
                                 break;
                             }
                         }
                     }
 
-                    // Creation du service pour recuperer les lignes
+                    // Creation du service pour recuperer les arrets
                     Intent serviceArret = new Intent(context, Service_Arrets.class);
-                    serviceArret.putExtra("ligne", selectedLine.getId());
+                    serviceArret.putExtra("ligne", selectedLigne.getId());
                     Log.e("MAIN", "Demarrage du service arrets.");
                     startService(serviceArret);
                 } else {
@@ -141,7 +158,7 @@ public class MainActivity extends AppCompatActivity{
                     // Creation du service pour recuperer les stoptimes
                     final Intent serviceStoptime = new Intent(context, Service_Stoptime.class);
                     serviceStoptime.putExtra("arret", selectedArret.getCode());
-                    serviceStoptime.putExtra("ligne", selectedLine.getShortName());
+                    serviceStoptime.putExtra("ligne", selectedLigne.getShortName());
                     Log.e("MAIN", "Demarrage du service stoptimes.");
                     startService(serviceStoptime);
 
@@ -222,32 +239,29 @@ public class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                String ligneChoisie = data.getStringExtra("ligneChoisie");
-                String arretChoisi = data.getStringExtra("arretChoisi");
+                nomLigneFromFavoris = data.getStringExtra("ligneChoisie");
+                nomArretFromFavoris = data.getStringExtra("arretChoisi");
 
                 final RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
                 final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
-                final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
 
                 for(int i = 0; i < this.lignesTram.size(); i++) {
-                    if(this.lignesTram.get(i).getShortName().equals(ligneChoisie)) {
+                    if(this.lignesTram.get(i).getShortName().equals(nomLigneFromFavoris)) {
+                        radioGroup.clearCheck();
                         radioGroup.check(R.id.radioButtonTram);
                         spinnerLignes.setSelection(i+1);
+                        nomLigneFromFavoris = "";
                         break;
                     }
                 }
 
                 for(int i = 0; i < this.lignesBus.size(); i++) {
-                    if(this.lignesBus.get(i).getShortName().equals(ligneChoisie)) {
+                    if(this.lignesBus.get(i).getShortName().equals(nomLigneFromFavoris)) {
+                        radioGroup.clearCheck();
                         radioGroup.check(R.id.radioButtonBus);
                         spinnerLignes.setSelection(i+1);
-                    }
-                }
-
-                // TODO CA NE MARCHE PAS
-                for(int i = 0; i < this.arrets.size(); i++) {
-                    if (this.arrets.get(i).getName().equals(arretChoisi)) {
-                        spinnerArrets.setSelection(i);
+                        nomLigneFromFavoris = "";
+                        break;
                     }
                 }
             }
@@ -264,10 +278,22 @@ public class MainActivity extends AppCompatActivity{
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_settings_addAsFav:
-                addAsFavorite();
+                ajouterFavorite();
                 return true;
             case R.id.action_settings_favs:
                 ouvrirFavoris();
+                return true;
+            case R.id.action_settings_enableNotification:
+                this.suiviActif = true;
+                activerSuivi();
+                return true;
+            case R.id.action_settings_disableNotification:
+                if(this.suiviActif) {
+                    this.suiviActif = false;
+                    Toast.makeText(MainActivity.this, "Suivi désactivé.", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Aucun suivi actif.", Toast.LENGTH_SHORT).show();
+                }
                 return true;
         }
 
@@ -285,20 +311,48 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    public void addAsFavorite() {
+    public void ajouterFavorite() {
         final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
         final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
 
         if(spinnerArrets.getSelectedItem() != null && !spinnerArrets.getSelectedItem().equals("...") && !spinnerLignes.getSelectedItem().equals("...")) {
-            Favori newFavori = new Favori(selectedLine, selectedArret);
+            Favori newFavori = new Favori(selectedLigne, selectedArret);
 
             StockageService stockage = new Stockage();
             stockage.add(getApplicationContext(), newFavori);
 
             Toast.makeText(this, "Ajout aux favori.", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt pour pouvoir ajouter un favori.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void activerSuivi() {
+        final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
+        final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
+
+        if(spinnerArrets.getSelectedItem() == null || spinnerArrets.getSelectedItem().equals("...")
+                || spinnerLignes.getSelectedItem().equals("...")) {
+            Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt pour activer le suivi.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if(spinnerArrets.getSelectedItem() != null && !spinnerArrets.getSelectedItem().toString().equals("...")
+                        && !spinnerLignes.getSelectedItem().toString().equals("...")
+                        && suiviActif) {
+                    Log.e("TIMER", "Rafraichissement du suivi.");
+
+                    sendNotification();
+                }
+            }
+        };
+        timer.schedule(timerTask, 0, 180000);
+
+        Toast.makeText(MainActivity.this, "Suivi activé pour cet arrêt, vous recevrez une notification toutes les 3 minutes.", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -339,11 +393,11 @@ public class MainActivity extends AppCompatActivity{
 
     public void trierStoptimes(Stoptime[] tousStoptimes) {
         stoptimes.clear();
-        String dir1 = "";
-        String dir2 = "";
+        dir1 = "";
+        dir2 = "";
 
         for (Stoptime currentStoptime : tousStoptimes) {
-            if(currentStoptime.getPattern().getId().split(":")[1].equals(selectedLine.getShortName())
+            if(currentStoptime.getPattern().getId().split(":")[1].equals(selectedLigne.getShortName())
                     && currentStoptime.getPattern().getId().split(":")[0].equals("SEM")){
                 stoptimes.add(currentStoptime);
 
@@ -424,6 +478,16 @@ public class MainActivity extends AppCompatActivity{
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
         spinnerArrets.setAdapter(spinnerAdapter);
 
+        if(nomArretFromFavoris != "") {
+            for(int i = 0; i < nomsArrets.size(); i++) {
+                if (nomsArrets.get(i).equals(nomArretFromFavoris)) {
+                    spinnerArrets.setSelection(i);
+                    break;
+                }
+            }
+            nomArretFromFavoris = "";
+        }
+
         displayArretLayout(true);
     }
 
@@ -432,8 +496,8 @@ public class MainActivity extends AppCompatActivity{
         ListView listViewArrets2 = (ListView) findViewById(R.id.listViewArretsDir2);
         List<Double> timesDir1Double = new ArrayList<>();
         List<Double> timesDir2Double = new ArrayList<>();
-        List<String> timesDir1ToReturn = new ArrayList<>();
-        List<String> timesDir2ToReturn = new ArrayList<>();
+        timesDir1ToReturn.clear();
+        timesDir2ToReturn.clear();
 
         for(Stoptime currentStoptime : stoptimes) {
             if (currentStoptime.getPattern().getDir() == 1) {
@@ -482,8 +546,8 @@ public class MainActivity extends AppCompatActivity{
 
         listViewArrets1.setAdapter(listViewAdapter1);
         listViewArrets2.setAdapter(listViewAdapter2);
-        textView4.setText("Dir. "+dir1);
-        textView5.setText("Dir. "+dir2);
+        textView4.setText("Dir. " + dir1);
+        textView5.setText("Dir. " + dir2);
 
         displayListeLayout(true);
     }
@@ -500,15 +564,22 @@ public class MainActivity extends AppCompatActivity{
     ============================================================================================
      */
     public void sendNotification() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/"));
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/")); // TODO lorsque l'utilisateur cliau==que sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        notificationLigne = selectedLigne;
+        notificationArret = selectedArret;
 
         NotificationCompat.Builder mBuilder =
                 (NotificationCompat.Builder) new NotificationCompat.Builder(MainActivity.this)
-                        .setSmallIcon(android.R.drawable.sym_def_app_icon)
-                        .setContentTitle("Tagoid")
-                        .setContentText("Pwit pwit")
-                        .setContentIntent(pendingIntent);
+                        .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle())
+                        .setSmallIcon(R.drawable.ic_directions_subway_black_24dp)
+                        .setContentTitle("Ligne " + notificationLigne.getShortName() + " : Arret " + notificationArret.getName())
+                        .setContentText("Dir. " + dir1 + " -> " + "dans " + timesDir1ToReturn.get(0) + "\n"
+                                + "Dir. " + dir2 + " -> " + "dans " + timesDir2ToReturn.get(0) + "")
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true)
+                        .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(1, mBuilder.build());
