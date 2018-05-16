@@ -6,10 +6,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
@@ -31,7 +34,13 @@ import com.example.vanbossm.tagoid.data.Stoptime;
 import com.example.vanbossm.tagoid.persistence.Favori;
 import com.example.vanbossm.tagoid.persistence.Stockage;
 import com.example.vanbossm.tagoid.persistence.StockageService;
+import com.example.vanbossm.tagoid.services.Service_Arrets;
+import com.example.vanbossm.tagoid.services.Service_Lignes;
+import com.example.vanbossm.tagoid.services.Service_Stoptime;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,6 +93,20 @@ public class MainActivity extends AppCompatActivity{
         notificationArret = null;
         selectedArret = null;
         this.suiviActif = false;
+
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+            @Override
+            public void run() {
+                if(!isConnectedOnInternet()) {
+                    Snackbar("TIMER", "Veuillez vous connecter à internet.");
+                    Snackbar snackbar = Snackbar.make(coordinatorLayout, "Veuillez vous connecter à internet.", Snackbar.LENGTH_SHORT).show();
+                }
+            }
+        };
 
         /*
         ============================================================================================
@@ -289,8 +312,7 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.action_settings_disableNotification:
                 if(this.suiviActif) {
-                    this.suiviActif = false;
-                    Toast.makeText(MainActivity.this, "Suivi désactivé.", Toast.LENGTH_SHORT).show();
+                    desactiverSuivi();
                 } else {
                     Toast.makeText(MainActivity.this, "Aucun suivi actif.", Toast.LENGTH_SHORT).show();
                 }
@@ -319,6 +341,15 @@ public class MainActivity extends AppCompatActivity{
             Favori newFavori = new Favori(selectedLigne, selectedArret);
 
             StockageService stockage = new Stockage();
+            List<Favori> favorisExistants = stockage.restore(this);
+
+            for (Favori favori : favorisExistants) {
+                if(favori.getLigne().getShortName().equals(newFavori.getLigne().getShortName())
+                        && favori.getArret().getName().equals(newFavori.getArret().getName())) {
+                    Toast.makeText(this, "Déjà en favori.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
             stockage.add(getApplicationContext(), newFavori);
 
             Toast.makeText(this, "Ajout aux favori.", Toast.LENGTH_LONG).show();
@@ -364,10 +395,12 @@ public class MainActivity extends AppCompatActivity{
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void trierLignes(Ligne[] toutesLignes) {
         for (Ligne ligneCourante : toutesLignes) {
-            if (ligneCourante.getMode().equals("TRAM")) {
-                lignesTram.add(ligneCourante);
-            } else {
-                lignesBus.add(ligneCourante);
+            if(ligneCourante.getId().contains("SEM")) {
+                if (ligneCourante.getMode().equals("TRAM")) {
+                    lignesTram.add(ligneCourante);
+                } else {
+                    lignesBus.add(ligneCourante);
+                }
             }
         }
         // Tri par ordre alphabetique
@@ -378,8 +411,9 @@ public class MainActivity extends AppCompatActivity{
                 return str1.getShortName().compareTo(str2.getShortName());
             }
         };
-        lignesTram.sort(comp);
-        lignesBus.sort(comp);
+
+        Collections.sort(lignesTram, comp);
+        Collections.sort(lignesBus, comp);
     }
 
     private void trierArrets(Arret[] tousArrets) {
@@ -433,6 +467,24 @@ public class MainActivity extends AppCompatActivity{
         }
 
         return timeToReturn.substring(0, timeToReturn.length()-2) + " min";
+    }
+
+    public void desactiverSuivi() {
+        this.suiviActif = false;
+        Toast.makeText(MainActivity.this, "Suivi désactivé.", Toast.LENGTH_SHORT).show();
+    }
+
+    public boolean isConnectedOnInternet()
+    {
+        try {
+            URL UrlTestConnection = new URL("http://www.google.com");
+            URLConnection connOk = UrlTestConnection.openConnection();
+            connOk.setConnectTimeout(3 * 1000);
+            connOk.connect();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     /*
@@ -564,7 +616,10 @@ public class MainActivity extends AppCompatActivity{
     ============================================================================================
      */
     public void sendNotification() {
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.github.com/")); // TODO lorsque l'utilisateur cliau==que sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
+        Intent intent = new Intent(this, MainActivity.class); // TODO lorsque l'utilisateur cliau==que sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
+        Intent muteIntent = new Intent(this, MainActivity.class);
+        muteIntent.setAction("MUTE");
+
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
         notificationLigne = selectedLigne;
@@ -579,10 +634,23 @@ public class MainActivity extends AppCompatActivity{
                                 + "Dir. " + dir2 + " -> " + "dans " + timesDir2ToReturn.get(0) + "")
                         .setContentIntent(pendingIntent)
                         .setAutoCancel(true)
+                        .addAction(R.drawable.ic_volume_off, "Desactiver le suivi", PendingIntent.getActivity(getApplicationContext(), 0, muteIntent, 0))
                         .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(1, mBuilder.build());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        if (intent.getAction() != null) {
+            switch (intent.getAction()) {
+                case "MUTE":
+                    this.desactiverSuivi();
+                    Toast.makeText(this, "Suivi desactive", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
     }
 
     /*

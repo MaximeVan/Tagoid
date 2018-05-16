@@ -31,15 +31,15 @@
 
 
         <service
-            android:name=".Service_Lignes"
+            android:name=".services.Service_Lignes"
             android:exported="false">
         </service>
         <service
-            android:name=".Service_Arrets"
+            android:name=".services.Service_Arrets"
             android:exported="false">
         </service>
         <service
-            android:name=".Service_Stoptime"
+            android:name=".services.Service_Stoptime"
             android:exported="false">
         </service>
 
