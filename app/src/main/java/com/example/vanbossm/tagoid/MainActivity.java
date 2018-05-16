@@ -17,6 +17,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.support.v7.view.menu.ActionMenuItemView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +40,7 @@ import com.example.vanbossm.tagoid.persistence.StockageService;
 import com.example.vanbossm.tagoid.services.Service_Arrets;
 import com.example.vanbossm.tagoid.services.Service_DesactiverSuivi;
 import com.example.vanbossm.tagoid.services.Service_Lignes;
+import com.example.vanbossm.tagoid.services.Service_RetourNotification;
 import com.example.vanbossm.tagoid.services.Service_Stoptime;
 
 import java.io.IOException;
@@ -55,7 +57,6 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity{
 
     private static int NOTIFICATION_ID = 1;
-    private Context context;
     private List<Ligne> lignesTram;
     private List<Ligne> lignesBus;
     private List<Arret> arrets;
@@ -71,8 +72,10 @@ public class MainActivity extends AppCompatActivity{
     private String nomArretFromFavoris;
     private Ligne notificationLigne;
     private Arret notificationArret;
+    private String notificationRadioButton;
     private boolean suiviActif;
     private boolean isConnectedToInternet;
+    private Menu activityMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +83,6 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
         displayNone();
 
-        context = this;
         radioButtonChecked = "";
         lignesBus = new ArrayList<>();
         lignesTram = new ArrayList<>();
@@ -94,7 +96,9 @@ public class MainActivity extends AppCompatActivity{
         timesDir2ToReturn = new ArrayList<>();
         nomLigneFromFavoris = "";
         nomArretFromFavoris = "";
+        notificationLigne = null;
         notificationArret = null;
+        notificationRadioButton = "";
         selectedArret = null;
         suiviActif = false;
         isConnectedToInternet = true;
@@ -163,7 +167,7 @@ public class MainActivity extends AppCompatActivity{
                     }
 
                     // Creation du service pour recuperer les arrets
-                    Intent serviceArret = new Intent(context, Service_Arrets.class);
+                    Intent serviceArret = new Intent(getApplicationContext(), Service_Arrets.class);
                     serviceArret.putExtra("ligne", selectedLigne.getId());
                     Log.e("MAIN", "Demarrage du service arrets.");
                     startService(serviceArret);
@@ -193,7 +197,7 @@ public class MainActivity extends AppCompatActivity{
                     }
 
                     // Creation du service pour recuperer les stoptimes
-                    final Intent serviceStoptime = new Intent(context, Service_Stoptime.class);
+                    final Intent serviceStoptime = new Intent(getApplicationContext(), Service_Stoptime.class);
                     serviceStoptime.putExtra("arret", selectedArret.getCode());
                     serviceStoptime.putExtra("ligne", selectedLigne.getShortName());
                     Log.e("MAIN", "Demarrage du service stoptimes.");
@@ -257,9 +261,40 @@ public class MainActivity extends AppCompatActivity{
                 if(intent.getAction().equals(Constants.DESACTIVER_SUIVI)) {
                     // Desactivation du suivi
                     NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                    mNotificationManager.cancel(1);
+                    mNotificationManager.cancel(NOTIFICATION_ID);
                     Log.e("RECEIVER", "Desactivation du suivi.");
                     desactiverSuivi();
+                    activityMenu.getItem(1).setIcon(getResources().getDrawable(R.drawable.ic_notifications_white_24dp));
+                }
+
+                if(intent.getAction().equals(Constants.RETOUR_NOTIFICATION)) {
+                    // Desactivation du suivi
+
+                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    mNotificationManager.cancel(NOTIFICATION_ID);
+                    Log.e("RECEIVER", "Retour de notification.");
+
+                    if(notificationRadioButton.equals("BUS")) {
+                        radioGroup.clearCheck();
+                        radioGroup.check(R.id.radioButtonBus);
+
+                        for(int i = 0; i < lignesBus.size(); i++) {
+                            if (lignesBus.get(i).getShortName().equals(notificationLigne.getShortName())) {
+                                spinnerLignes.setSelection(i + 1);
+                                break;
+                            }
+                        }
+                    } else {
+                        radioGroup.clearCheck();
+                        radioGroup.check(R.id.radioButtonTram);
+
+                        for(int i = 0; i < lignesTram.size(); i++) {
+                            if (lignesTram.get(i).getShortName().equals(notificationLigne.getShortName())) {
+                                spinnerLignes.setSelection(i + 1);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         };
@@ -279,6 +314,10 @@ public class MainActivity extends AppCompatActivity{
         // IntentFilter de la desactivation du suivi
         IntentFilter intentFilterSuivi = new IntentFilter(Constants.DESACTIVER_SUIVI);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterSuivi);
+
+        // IntentFilter de la desactivation du suivi
+        IntentFilter intentFilterRetourNotif = new IntentFilter(Constants.RETOUR_NOTIFICATION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterRetourNotif);
 
         // Creation du service pour recuperer les lignes
         Intent serviceLigne = new Intent(this, Service_Lignes.class);
@@ -322,6 +361,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        activityMenu = menu;
         return true;
     }
 
@@ -331,15 +371,18 @@ public class MainActivity extends AppCompatActivity{
             case R.id.action_settings_addAsFav:
                 ajouterFavorite();
                 return true;
+            case R.id.action_settings_notification:
+                if(!suiviActif) {
+                    if(activerSuivi()) {
+                        item.setIcon(getResources().getDrawable(R.drawable.ic_notifications_off_white_24dp));
+                    }
+                } else {
+                    desactiverSuivi();
+                    item.setIcon(getResources().getDrawable(R.drawable.ic_notifications_white_24dp));
+                }
+                return true;
             case R.id.action_settings_favs:
                 ouvrirFavoris();
-                return true;
-            case R.id.action_settings_enableNotification:
-                this.suiviActif = true;
-                activerSuivi();
-                return true;
-            case R.id.action_settings_disableNotification:
-                desactiverSuivi();
                 return true;
         }
 
@@ -382,15 +425,17 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    private void activerSuivi() {
+    private boolean activerSuivi() {
         final Spinner spinnerArrets = (Spinner) findViewById(R.id.spinnerArrets);
         final Spinner spinnerLignes = (Spinner) findViewById(R.id.spinnerLignes);
 
         if(spinnerArrets.getSelectedItem() == null || spinnerArrets.getSelectedItem().equals("...")
                 || spinnerLignes.getSelectedItem().equals("...")) {
             Toast.makeText(this, "Veuillez sélectionner une ligne et un arrêt pour activer le suivi.", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
+
+        suiviActif = true;
 
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
@@ -404,9 +449,19 @@ public class MainActivity extends AppCompatActivity{
                 }
             }
         };
-        timer.schedule(timerTask, 0, 180000);
+        timer.schedule(timerTask, 0, 120000);
 
-        Toast.makeText(MainActivity.this, "Suivi activé pour cet arrêt, vous recevrez une notification toutes les 3 minutes.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "Suivi activé pour cet arrêt, vous recevrez une notification toutes les 2 minutes.", Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
+    public void desactiverSuivi() {
+        if(this.suiviActif) {
+            this.suiviActif = false;
+            Toast.makeText(MainActivity.this, "Suivi désactivé.", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(MainActivity.this, "Aucun suivi actif.", Toast.LENGTH_LONG).show();
+        }
     }
 
 
@@ -492,15 +547,6 @@ public class MainActivity extends AppCompatActivity{
         return timeToReturn.substring(0, timeToReturn.length()-2) + " min";
     }
 
-    public void desactiverSuivi() {
-        if(this.suiviActif) {
-            this.suiviActif = false;
-            Toast.makeText(MainActivity.this, "Suivi désactivé.", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(MainActivity.this, "Aucun suivi actif.", Toast.LENGTH_LONG).show();
-        }
-    }
-
     public boolean isConnectedOnInternet()
     {
         try {
@@ -538,7 +584,7 @@ public class MainActivity extends AppCompatActivity{
             }
         }
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsLignes);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, nomsLignes);
         spinnerLignes.setAdapter(spinnerAdapter);
 
         displayLigneLayout(true);
@@ -554,7 +600,7 @@ public class MainActivity extends AppCompatActivity{
             nomsArrets.add(arretCourant.getName());
         }
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, nomsArrets);
         spinnerArrets.setAdapter(spinnerAdapter);
 
         if(nomArretFromFavoris != "") {
@@ -565,6 +611,15 @@ public class MainActivity extends AppCompatActivity{
                 }
             }
             nomArretFromFavoris = "";
+        }
+
+        if(notificationArret != null) {
+            for(int i = 0; i < arrets.size(); i++) {
+                if (arrets.get(i).getName().equals(notificationArret.getName())) {
+                    spinnerArrets.setSelection(i+1);
+                    break;
+                }
+            }
         }
 
         displayArretLayout(true);
@@ -618,8 +673,8 @@ public class MainActivity extends AppCompatActivity{
             }
         }
 
-        ArrayAdapter<String> listViewAdapter1 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir1ToReturn);
-        ArrayAdapter<String> listViewAdapter2 = new ArrayAdapter(context, R.layout.support_simple_spinner_dropdown_item, timesDir2ToReturn);
+        ArrayAdapter<String> listViewAdapter1 = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, timesDir1ToReturn);
+        ArrayAdapter<String> listViewAdapter2 = new ArrayAdapter(this, R.layout.support_simple_spinner_dropdown_item, timesDir2ToReturn);
         TextView textView4 = (TextView) findViewById(R.id.textView4);
         TextView textView5 = (TextView) findViewById(R.id.textView5);
 
@@ -636,37 +691,37 @@ public class MainActivity extends AppCompatActivity{
     */
 
 
-
     /*
-    ============================================================================================
-                                            Notification
-    ============================================================================================
-     */
+        ============================================================================================
+                                                Notification
+        ============================================================================================
+         */
     public void sendNotification() {
-        Intent intent = new Intent(this, MainActivity.class); // TODO lorsque l'utilisateur clique sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        Intent tagoidIntent = new Intent(this, Service_RetourNotification.class); // TODO lorsque l'utilisateur clique sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
+        PendingIntent pendingTagoidIntent = PendingIntent.getService(this, 0, tagoidIntent, 0);
 
         Intent muteIntent = new Intent(this, Service_DesactiverSuivi.class);
         PendingIntent pendingMuteIntent = PendingIntent.getService(this, 0, muteIntent, 0);
 
         notificationLigne = selectedLigne;
         notificationArret = selectedArret;
+        notificationRadioButton = radioButtonChecked;
 
         NotificationCompat.Builder mBuilder =
                 (NotificationCompat.Builder) new NotificationCompat.Builder(MainActivity.this)
                         .setStyle(new android.support.v4.app.NotificationCompat.BigTextStyle())
-                        .setSmallIcon(R.drawable.ic_directions_subway_black_24dp)
+                        .setSmallIcon(R.drawable.ic_tram_black_24dp)
                         .setContentTitle("Ligne " + notificationLigne.getShortName() + " : Arret " + notificationArret.getName())
                         .setContentText("Dir. " + dir1 + " -> " + "dans " + timesDir1ToReturn.get(0) + "\n"
                                 + "Dir. " + dir2 + " -> " + "dans " + timesDir2ToReturn.get(0) + "")
-                        .setContentIntent(pendingIntent)
-                        .addAction(R.drawable.ic_volume_off, "Desactiver le suivi", pendingMuteIntent)
+                        .addAction(R.drawable.ic_notifications_off_black_24dp, "Desactiver le suivi", pendingMuteIntent)
+                        .addAction(R.drawable.ic_tram_black_24dp, "Allez sur Tagoid", pendingTagoidIntent)
                         .setAutoCancel(true)
                         .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
 
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(1, mBuilder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
     /*
