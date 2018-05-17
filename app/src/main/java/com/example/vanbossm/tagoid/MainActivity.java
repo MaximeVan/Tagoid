@@ -274,6 +274,7 @@ public class MainActivity extends AppCompatActivity{
                     mNotificationManager.cancel(NOTIFICATION_ID);
                     Log.e("RECEIVER", "Retour de notification.");
 
+
                     if(notificationRadioButton.equals("BUS")) {
                         radioGroup.clearCheck();
                         radioGroup.check(R.id.radioButtonBus);
@@ -703,6 +704,9 @@ public class MainActivity extends AppCompatActivity{
         Intent muteIntent = new Intent(this, Service_DesactiverSuivi.class);
         PendingIntent pendingMuteIntent = PendingIntent.getService(this, 0, muteIntent, 0);
 
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
         notificationLigne = selectedLigne;
         notificationArret = selectedArret;
         notificationRadioButton = radioButtonChecked;
@@ -714,6 +718,7 @@ public class MainActivity extends AppCompatActivity{
                         .setContentTitle("Ligne " + notificationLigne.getShortName() + " : Arret " + notificationArret.getName())
                         .setContentText("Dir. " + dir1 + " -> " + "dans " + timesDir1ToReturn.get(0) + "\n"
                                 + "Dir. " + dir2 + " -> " + "dans " + timesDir2ToReturn.get(0) + "")
+                        .setContentIntent(pendingIntent)
                         .addAction(R.drawable.ic_notifications_off_black_24dp, "Desactiver le suivi", pendingMuteIntent)
                         .addAction(R.drawable.ic_tram_black_24dp, "Allez sur Tagoid", pendingTagoidIntent)
                         .setAutoCancel(true)
