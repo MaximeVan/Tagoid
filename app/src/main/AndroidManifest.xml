@@ -46,10 +46,6 @@
             android:name=".services.Service_DesactiverSuivi"
             android:exported="false">
         </service>
-        <service
-            android:name=".services.Service_RetourNotification"
-            android:exported="false">
-        </service>
 
     </application>
 

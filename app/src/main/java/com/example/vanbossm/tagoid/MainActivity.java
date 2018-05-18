@@ -6,18 +6,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
-import android.support.v7.view.menu.ActionMenuItemView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,14 +28,12 @@ import android.widget.Toast;
 import com.example.vanbossm.tagoid.data.Arret;
 import com.example.vanbossm.tagoid.data.Ligne;
 import com.example.vanbossm.tagoid.data.Stoptime;
-import com.example.vanbossm.tagoid.data.Time;
 import com.example.vanbossm.tagoid.persistence.Favori;
 import com.example.vanbossm.tagoid.persistence.Stockage;
 import com.example.vanbossm.tagoid.persistence.StockageService;
 import com.example.vanbossm.tagoid.services.Service_Arrets;
 import com.example.vanbossm.tagoid.services.Service_DesactiverSuivi;
 import com.example.vanbossm.tagoid.services.Service_Lignes;
-import com.example.vanbossm.tagoid.services.Service_RetourNotification;
 import com.example.vanbossm.tagoid.services.Service_Stoptime;
 
 import java.io.IOException;
@@ -266,37 +259,6 @@ public class MainActivity extends AppCompatActivity{
                     desactiverSuivi();
                     activityMenu.getItem(1).setIcon(getResources().getDrawable(R.drawable.ic_notifications_white_24dp));
                 }
-
-                if(intent.getAction().equals(Constants.RETOUR_NOTIFICATION)) {
-                    // Desactivation du suivi
-
-                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                    mNotificationManager.cancel(NOTIFICATION_ID);
-                    Log.e("RECEIVER", "Retour de notification.");
-
-
-                    if(notificationRadioButton.equals("BUS")) {
-                        radioGroup.clearCheck();
-                        radioGroup.check(R.id.radioButtonBus);
-
-                        for(int i = 0; i < lignesBus.size(); i++) {
-                            if (lignesBus.get(i).getShortName().equals(notificationLigne.getShortName())) {
-                                spinnerLignes.setSelection(i + 1);
-                                break;
-                            }
-                        }
-                    } else {
-                        radioGroup.clearCheck();
-                        radioGroup.check(R.id.radioButtonTram);
-
-                        for(int i = 0; i < lignesTram.size(); i++) {
-                            if (lignesTram.get(i).getShortName().equals(notificationLigne.getShortName())) {
-                                spinnerLignes.setSelection(i + 1);
-                                break;
-                            }
-                        }
-                    }
-                }
             }
         };
 
@@ -315,10 +277,6 @@ public class MainActivity extends AppCompatActivity{
         // IntentFilter de la desactivation du suivi
         IntentFilter intentFilterSuivi = new IntentFilter(Constants.DESACTIVER_SUIVI);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterSuivi);
-
-        // IntentFilter de la desactivation du suivi
-        IntentFilter intentFilterRetourNotif = new IntentFilter(Constants.RETOUR_NOTIFICATION);
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilterRetourNotif);
 
         // Creation du service pour recuperer les lignes
         Intent serviceLigne = new Intent(this, Service_Lignes.class);
@@ -698,9 +656,6 @@ public class MainActivity extends AppCompatActivity{
         ============================================================================================
          */
     public void sendNotification() {
-        Intent tagoidIntent = new Intent(this, Service_RetourNotification.class); // TODO lorsque l'utilisateur clique sur la notification, retour sur l'application avec les champs remplis grace aux attributs notificationLigne et notificationArret
-        PendingIntent pendingTagoidIntent = PendingIntent.getService(this, 0, tagoidIntent, 0);
-
         Intent muteIntent = new Intent(this, Service_DesactiverSuivi.class);
         PendingIntent pendingMuteIntent = PendingIntent.getService(this, 0, muteIntent, 0);
 
@@ -720,7 +675,6 @@ public class MainActivity extends AppCompatActivity{
                                 + "Dir. " + dir2 + " -> " + "dans " + timesDir2ToReturn.get(0) + "")
                         .setContentIntent(pendingIntent)
                         .addAction(R.drawable.ic_notifications_off_black_24dp, "Desactiver le suivi", pendingMuteIntent)
-                        .addAction(R.drawable.ic_tram_black_24dp, "Allez sur Tagoid", pendingTagoidIntent)
                         .setAutoCancel(true)
                         .setVibrate(new long[] { 1000, 1000, 1000, 1000, 1000 });
 
